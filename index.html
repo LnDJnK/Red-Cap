@@ -140,6 +140,11 @@
   }
   @keyframes fadeOut{ from{opacity:1} to{opacity:0} }
 
+  /* >>> helper pour retirer vite un ancien sprite sans spin */
+  .sprite.fade-out-fast{
+    animation: fadeOut .18s var(--ease) forwards;
+  }
+
   .sprite.tornado-in{ animation: tornadoIn .5s var(--ease) both; }
   @keyframes tornadoIn{
     0%   { transform: scale(0) rotate(0deg);   opacity:0 }
@@ -478,6 +483,23 @@ function makeNode(sym){
   return wrap;
 }
 
+/* >>> Remplacer proprement le sprite d'une case */
+function swapSpriteAt(cells, r, c, newId){
+  const cell = cells[r*COLS + c];
+  if(!cell) return;
+
+  const oldSprite = cell.querySelector('.sprite');
+  if(oldSprite){
+    oldSprite.classList.remove('spin-loop','spin-burst');
+    oldSprite.classList.add('fade-out-fast');
+    setTimeout(()=> oldSprite.remove(), 180);
+  }
+
+  const wrap = makeNode(SYM.find(s=>s.id===newId));
+  wrap.classList.add('tornado-in');
+  cell.appendChild(wrap);
+}
+
 /* ===== Overlay montant d'un cluster ===== */
 function showClusterWin(amount, cells){
   if(!amount || amount<=0) return;
@@ -799,32 +821,21 @@ async function runGoldenIfPossible(currentGrid){
   await wait(700);
 
   const replaced=[];
-if(anyTags()){
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    if(tagMask[r][c]){
+  if(anyTags()){
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      if(tagMask[r][c]){
 
-      // >>> RÈGLE : ne PAS remplacer un FSS même s'il est sur un tag
-      if(currentGrid[r][c] === 'FSS') continue;
+        // RÈGLE : ne PAS remplacer un FSS même s'il est sur un tag
+        if(currentGrid[r][c] === 'FSS') continue;
 
-      const cell=cells[r*COLS+c];
-      if(cell){
-        const wrap=makeNode(SYM.find(s=>s.id===targetId));
-        wrap.classList.add('tornado-in');
-        cell.appendChild(wrap);
+        swapSpriteAt(cells, r, c, targetId);
+        replaced.push([r,c]);
       }
-      replaced.push([r,c]);
     }
   }
-}
 
-
-  const appear=makeNode(SYM.find(s=>s.id===targetId));
-  appear.classList.add('tornado-in');
-  gocCell.appendChild(appear);
-
-  gocWrap.classList.remove('spin-loop');
-  gocWrap.classList.add('spin-fade-out');
-  setTimeout(()=>{ if(gocWrap && gocWrap.parentNode) gocWrap.parentNode.removeChild(gocWrap); }, 560);
+  // Remplacer aussi la case GOC elle-même proprement
+  swapSpriteAt(cells, gr, gc, targetId);
 
   if(targetWrap){ targetWrap.classList.remove('spin-burst'); }
 
