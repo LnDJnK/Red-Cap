@@ -15,17 +15,10 @@
     --ease: cubic-bezier(.22,.61,.36,1);
   }
 
-  /* ====== Polices TAGLINER ====== */
+  /* ====== Polices urban ====== */
   @font-face{
-    font-family: "Tagliner";
-    src: url("TAGLINER.otf") format("opentype"),
-         url("TAGLINER.ttf") format("truetype");
-    font-display: swap;
-  }
-  @font-face{
-    font-family: "Tagliner Swash";
-    src: url("TAGLINER-Swash.otf") format("opentype"),
-         url("TAGLINER-Swash.ttf") format("truetype");
+    font-family: "urban";
+    src: url("urban.ttf") format("truetype");
     font-display: swap;
   }
 
@@ -69,6 +62,7 @@
 
   /* ===== Sprites ===== */
   .sprite{
+    position: relative; /* l’overlay case.png suit exactement ce wrapper */
     z-index:2; width:90%; height:90%;
     filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
     will-change: transform, opacity;
@@ -80,18 +74,37 @@
   .sprite-img{
     width:100%; height:100%; object-fit:contain; pointer-events:none;
   }
-  /* Golden Cap : reste plus grande en permanence */
-  .sprite-img.goc{ transform: scale(1.15); }
+  .sprite-img.goc{ transform: none; }
 
-  .hit{
-    outline:2px solid rgba(50,210,150,.8);
-    box-shadow:0 0 12px rgba(50,210,150,.35);
-    transition: outline-color .2s var(--ease), box-shadow .2s var(--ease);
+  /* ===== Overlay case.png (reste calé sur .sprite, mais ne tourne jamais) ===== */
+  .case-overlay{
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    z-index:3; pointer-events:none;
+    transform-origin:center;
+  }
+  .case-overlay img{ width:125%; height:125%; object-fit:contain; }
+
+  /* Anti-rotation (contre-spin) quand le parent tourne */
+  .case-overlay.lock-rot{
+    animation: counterSpin .45s linear infinite;
+  }
+  @keyframes counterSpin{
+    from{ transform: rotate(0deg) }
+    to  { transform: rotate(-360deg) }
+  }
+
+  /* Explosion cartoon fumée – au début du spin de la GOC */
+  .case-overlay.explode{ animation: counterSpin .45s linear infinite, explodeCloud .6s ease forwards; }
+  @keyframes explodeCloud{
+    0%   { transform: rotate(0deg)   scale(1);   opacity:1; }
+    40%  { transform: rotate(-160deg) scale(1.4);  opacity:.9; }
+    70%  { transform: rotate(-280deg) scale(1.8);  opacity:.6; }
+    100% { transform: rotate(-360deg) scale(2.2);  opacity:0; }
   }
 
   /* ====== Animations générales ====== */
 
-  /* arrivée par le haut */
   .sprite.from-panel{
     --overshootPx: 0.04;
     animation: fallFromPanel .46s var(--ease) both;
@@ -102,7 +115,6 @@
     100% { transform: translateY(0) }
   }
 
-  /* chute locale (sans flash) */
   .sprite.fall{
     --fallStart: -100%;
     --startOpacity: 1;
@@ -115,11 +127,9 @@
     100% { transform: translateY(0);               opacity: 1; }
   }
 
-  /* sortie vers le bas */
   .sprite.exit-down{ animation: exitDown .28s var(--ease) forwards; }
   @keyframes exitDown{ to { transform: translateY(130%); opacity: 0; } }
 
-  /* pop gagnant */
   .sprite.pop-win{ animation:popAndFade .46s var(--ease) forwards }
   @keyframes popAndFade{
     0%   { transform:scale(1);    opacity:1 }
@@ -131,14 +141,22 @@
   .sprite.spin{ animation: spin360 .5s linear forwards }
   .sprite.goc-spin{ animation: spin360 .5s linear forwards }
   .sprite.spin-loop{ animation: spin360 .45s linear infinite; }
-  .sprite.spin-burst{ animation: spin360 .4s linear infinite; transform: scale(1.06); }
-  @keyframes spin360{ from{ transform: rotate(0deg) } to { transform: rotate(360deg) } }
+  .sprite.spin-burst{ animation: spin360 .45s linear infinite; transform: scale(1.06); }
+  @keyframes spin360{ from{ transform: rotate(0deg) } to{ transform: rotate(360deg) } }
 
   /* fondu pour la GOC pendant qu’elle tourne */
   .sprite.spin-fade-out{
-    animation: spin360 .45s linear infinite, fadeOut .5s var(--ease) forwards;
+    animation: spin360 .45s linear infinite, fadeOut .55s var(--ease) forwards;
   }
   @keyframes fadeOut{ from{opacity:1} to{opacity:0} }
+
+  /* Remplissage Tornado (0 ➜ 150% ➜ 100%) */
+  .sprite.tornado-in{ animation: tornadoIn .5s var(--ease) both; }
+  @keyframes tornadoIn{
+    0%   { transform: scale(0) rotate(0deg);   opacity:0 }
+    60%  { transform: scale(1.5) rotate(300deg); opacity:1 }
+    100% { transform: scale(1) rotate(360deg); opacity:1 }
+  }
 
   /* apparition zoom (legacy) */
   .sprite.spawn-zoom{ animation: spawnZoom .36s var(--ease) both; }
@@ -148,13 +166,39 @@
     100% { transform: scale(1);   opacity: 1 }
   }
 
-  /* Remplissage Tornado (0 ➜ 100%) */
-  .sprite.tornado-in{ animation: tornadoIn .5s var(--ease) both; }
-  @keyframes tornadoIn{
-    0%   { transform: scale(0) rotate(0deg);   opacity:0 }
-    60%  { transform: scale(1.04) rotate(300deg); opacity:1 }
-    100% { transform: scale(1) rotate(360deg); opacity:1 }
+  /* ===== Effets de focus sur HIT ===== */
+
+  .cell.dimmed::after{
+    content:"";
+    position:absolute; inset:0;
+    background:#000;
+    opacity:.38;
+    border-radius:12px;
+    pointer-events:none;
+    transition: opacity .18s var(--ease);
+    z-index: 6;
   }
+  .cell.dimmed.fadeout::after{ opacity:0; }
+
+  .sprite.hit-pulse{
+    animation: hitPulse .48s var(--ease) infinite alternate;
+  }
+  @keyframes hitPulse{
+    from{ transform: scale(1) }
+    to  { transform: scale(1.08) }
+  }
+
+  .hit-shine{
+    position:absolute; inset:0;
+    border-radius:12px;
+    background: rgba(255,255,255,.26);
+    mix-blend-mode: screen;
+    pointer-events:none;
+    opacity:0;
+    transition: opacity .14s var(--ease);
+    z-index:3;
+  }
+  .hit-shine.on{ opacity:.85; }
 
   /* Tag */
   .tag-bg{
@@ -168,7 +212,6 @@
     70%  { transform: scale(1.06); opacity:.95 }
     100% { transform: scale(1);   opacity:.95 }
   }
-  /* disparition rapide des tags au spin */
   .tag-bg.tag-fade-out{ animation: tagFade .18s ease forwards; }
   @keyframes tagFade{ to { opacity:0; transform: scale(.9); } }
 
@@ -180,15 +223,19 @@
     position:absolute; left:50%; top:50%;
     transform: translate(-50%,-50%) scale(0);
     transform-origin:center;
-    font-family: "Tagliner","Tagliner Swash", ui-sans-serif, system-ui;
+
+    /* >>> Modifs lisibilité & rouge opaque <<< */
+    font-family: "urban", ui-sans-serif, system-ui;
     font-weight: 900;
     line-height: 1;
     letter-spacing: .5px;
-    color: #ff2b2b;
-    -webkit-text-stroke: 6px #ffffff;
+    color: #ff1f1f;                 /* rouge 100% opaque */
+    -webkit-text-stroke: 3px #ffffff; /* contour blanc fin */
     text-shadow:
-      0 10px 0 rgba(0,0,0,.35),
-      0 14px 26px rgba(0,0,0,.55);
+      0 10px 0 rgba(0,0,0,.55),
+      0 18px 34px rgba(0,0,0,.75),
+      0 0 2px rgba(0,0,0,.9);
+
     font-size: clamp(56px, 9vw, 180px);
     opacity: 0;
     animation: winScale .8s var(--ease) forwards,
@@ -370,6 +417,14 @@ function makeNode(sym){
   const img=makeImg(sym.src,sym.alt);
   img.className='sprite-img'+(sym.id==='GOC'?' goc':'');
   wrap.appendChild(img);
+
+  if(sym.id==='GOC'){
+    const overlay=document.createElement('div');
+    overlay.className='case-overlay';
+    overlay.appendChild(makeImg('case.png'));
+    wrap.appendChild(overlay);
+  }
+
   return wrap;
 }
 
@@ -458,7 +513,9 @@ function renderGrid(grid, marks=new Set(), markMeta=()=>null){
   }
 }
 
-function makeStartGrid(){ return Array.from({length:ROWS},()=>Array.from({length:COLS},randSym)); }
+function makeStartGrid(){ 
+  return Array.from({length:ROWS},()=>Array.from({length:COLS},randSym));
+}
 
 function flood(grid,sr,sc,id,seen){
   const st=[[sr,sc]], cells=[];
@@ -517,11 +574,9 @@ async function dropOutOldGrid(){
       const cell=cells[idx];
       if(!cell) continue;
 
-      /* -> disparition rapide des tags au lancement du spin */
       const tag=cell.querySelector('.tag-bg');
       if(tag){ tag.classList.add('tag-fade-out'); }
 
-      /* -> sortie des sprites */
       const spr=cell.querySelector('.sprite');
       if(!spr) continue;
       const d=c*COL_DELAY + r*ROW_DELAY;
@@ -534,7 +589,47 @@ async function dropOutOldGrid(){
   return EXIT_DOWN_MS + maxDelay + 10;
 }
 
+/* Applique/retire le focus visuel pendant un HIT (voile sombre + pulse + shine) */
+function applyHitPresentation(hitSet, on){
+  const cells=[...$grid.children];
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const idx=r*COLS+c;
+      const cell=cells[idx];
+      if(!cell) continue;
+      const isHit = hitSet.has(`${r},${c}`);
+
+      if(on){
+        if(isHit){
+          const spr=cell.querySelector('.sprite');
+          if(spr) spr.classList.add('hit-pulse');
+          if(!cell.querySelector('.hit-shine')){
+            const s=document.createElement('div');
+            s.className='hit-shine on';
+            cell.appendChild(s);
+          }else{
+            cell.querySelector('.hit-shine').classList.add('on');
+          }
+        }else{
+          cell.classList.add('dimmed');
+        }
+      }else{
+        const spr=cell.querySelector('.sprite');
+        spr?.classList.remove('hit-pulse');
+        const shine=cell.querySelector('.hit-shine');
+        if(shine){ shine.classList.remove('on'); shine.remove(); }
+        if(cell.classList.contains('dimmed')){
+          cell.classList.add('fadeout'); // transition douce
+          cell.classList.remove('dimmed');
+          cell.classList.remove('fadeout');
+        }
+      }
+    }
+  }
+}
+
 function showRemovalWithTag(grid,clusters,placeTags=true){
+  const $winsLayer=document.getElementById('wins');
   $winsLayer.innerHTML='';
 
   const hitSet=new Set();
@@ -545,6 +640,9 @@ function showRemovalWithTag(grid,clusters,placeTags=true){
   const POP_MS=460, COL_DELAY=40, ROW_DELAY=22;
   let maxDelay=0;
 
+  /* On synchronise l'effet de focus avec l'apparition du montant (earliest) */
+  let globalStartDelay = Infinity;
+
   clusters.forEach(cl=>{
     const amount = payFor(cl.id, cl.cells.length);
 
@@ -553,6 +651,8 @@ function showRemovalWithTag(grid,clusters,placeTags=true){
       const d = c*COL_DELAY + r*ROW_DELAY;
       if(d < minDelay) minDelay = d;
     });
+    if(minDelay < globalStartDelay) globalStartDelay = minDelay;
+
     setTimeout(()=>showClusterWin(amount, cl.cells), Math.max(0, minDelay));
 
     cl.cells.forEach(([r,c])=>{
@@ -586,86 +686,112 @@ function showRemovalWithTag(grid,clusters,placeTags=true){
     });
   });
 
+  if(globalStartDelay !== Infinity){
+    setTimeout(()=>applyHitPresentation(hitSet, true), Math.max(0, globalStartDelay));
+  }
+
+  const totalDuration = POP_MS + maxDelay;
+  setTimeout(()=>applyHitPresentation(hitSet, false), totalDuration);
+
   clusters.forEach(cl=>cl.cells.forEach(([r,c])=>grid[r][c]=null));
-  return POP_MS+maxDelay;
+  return totalDuration;
 }
 
-/* ==== GOLDEN CAP mechanic – isolée pour pouvoir l'appeler AVANT la gravité ==== */
-let suppressNextTags = false; // <— empêche le tag sur le hit suivant (post-Golden)
+/* ==== GOLDEN CAP mechanic ==== */
+let suppressNextTags = false;
 
 async function runGoldenIfPossible(currentGrid){
   const gpos = findGoldenPos(currentGrid);
   if(!gpos) return false;
-  if(!anyTags()) return false;
-
   const [gr,gc]=gpos;
+
   const cells=[...$grid.children];
-  const gocCellIndex=gr*COLS+gc;
-  const gocWrap=cells[gocCellIndex]?.querySelector('.sprite');
+  const gocCell=cells[gr*COLS+gc];
+  if(!gocCell) return false;
 
-  if(gocWrap){ gocWrap.classList.add('spin-loop'); }
+  const gocWrap=gocCell.querySelector('.sprite');
+  if(!gocWrap) return false;
 
-  // choisir 1 item existant (≠ GOC)
+  const overlay = gocWrap.querySelector('.case-overlay'); // suit .sprite
+
+  /* 1) Début mécanique : rotation continue de la GOC */
+  gocWrap.classList.add('spin-loop');
+
+  /* -> Le cadre ne tourne pas + explose */
+  if(overlay){
+    overlay.classList.add('lock-rot');
+    overlay.classList.remove('explode'); void overlay.offsetWidth;
+    overlay.classList.add('explode');
+    setTimeout(()=>overlay && overlay.remove(), 600);
+  }
+
+  /* 2) Choix d’un item présent + petit spin visuel sur la cible */
   const candidates=[];
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     if(currentGrid[r][c] && currentGrid[r][c]!=='GOC') candidates.push([r,c]);
   }
   if(!candidates.length){
-    if(gocWrap) gocWrap.classList.remove('spin-loop');
+    gocWrap.classList.remove('spin-loop');
     return false;
   }
-
   const [tr,tc]=candidates[Math.floor(Math.random()*candidates.length)];
   const targetId=currentGrid[tr][tc];
-
-  // l'item choisi tourne un peu
   const targetWrap=cells[tr*COLS+tc]?.querySelector('.sprite');
   if(targetWrap){ targetWrap.classList.add('spin-burst'); }
+
   await wait(700);
 
-  // remplissage des tags en tornado + transformation de la GOC
+  /* 3) Remplissage des tags par l’item choisi */
   const replaced=[];
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    if(tagMask[r][c]){
-      const cell=cells[r*COLS+c];
-      if(cell){
-        const wrap=makeNode(SYM.find(s=>s.id===targetId));
-        wrap.classList.add('tornado-in');
-        cell.appendChild(wrap);
+  if(anyTags()){
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      if(tagMask[r][c]){
+        const cell=cells[r*COLS+c];
+        if(cell){
+          const wrap=makeNode(SYM.find(s=>s.id===targetId));
+          wrap.classList.add('tornado-in');
+          cell.appendChild(wrap);
+        }
+        replaced.push([r,c]);
       }
-      replaced.push([r,c]);
     }
   }
 
-  if(gocWrap){
-    const gocCell=cells[gocCellIndex];
-    const appear=makeNode(SYM.find(s=>s.id===targetId));
-    appear.classList.add('tornado-in');
-    gocCell.appendChild(appear);
+  /* 4) Crossfade de la GOC vers l'item */
+  const appear=makeNode(SYM.find(s=>s.id===targetId));
+  appear.classList.add('tornado-in');
+  gocCell.appendChild(appear);
 
-    gocWrap.classList.remove('spin-loop');
-    gocWrap.classList.add('spin-fade-out');
-  }
-
-  await wait(520);
+  gocWrap.classList.remove('spin-loop');
+  gocWrap.classList.add('spin-fade-out');
+  setTimeout(()=>{ if(gocWrap && gocWrap.parentNode) gocWrap.parentNode.removeChild(gocWrap); }, 560);
 
   if(targetWrap){ targetWrap.classList.remove('spin-burst'); }
-  if(gocWrap && gocWrap.parentNode) gocWrap.parentNode.removeChild(gocWrap);
 
-  // appliquer la conversion au modèle
+  /* 5) Conversion dans le modèle */
   for(const [r,c] of replaced){ currentGrid[r][c]=targetId; }
   currentGrid[gr][gc]=targetId;
 
-  // clear tags
+  /* 5.b) Pré-aperçu: focus visuel SEUL (pas d'affichage du gain ici pour éviter les doublons) */
+  const createdClusters = findAllClusters(currentGrid)
+    .filter(cl => cl.id === targetId && cl.cells.some(([r,c]) =>
+      (r===gr && c===gc) || replaced.some(([rr,cc]) => rr===r && cc===c)
+    ));
+
+  if (createdClusters.length){
+    const preHitSet = new Set();
+    createdClusters.forEach(cl => cl.cells.forEach(([r,c]) => preHitSet.add(`${r},${c}`)));
+    applyHitPresentation(preHitSet, true);
+    setTimeout(() => applyHitPresentation(preHitSet, false), 520);
+  }
+
+  /* 6) Nettoyer tags et re-render */
+  await wait(560);
   tagMask = Array.from({length:ROWS},()=>Array(COLS).fill(false));
   justTagged.clear();
-
-  // rerender propre (pas de gravité pendant l’anim)
   renderGrid(currentGrid,new Set(),()=>null);
 
-  // IMPORTANT: empêcher le tagging au hit immédiatement suivant
   suppressNextTags = true;
-
   return true;
 }
 
@@ -675,7 +801,7 @@ let isSpinning = false;
 let isAuto = false;
 
 (async function init(){
-  renderGrid(currentGrid,new Set(),initialMark);   // première arrivée par le haut
+  renderGrid(currentGrid,new Set(),initialMark);
   refreshBank();
   await wait(FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow*0.75}));
 })();
@@ -699,27 +825,22 @@ async function spin(){
   const $auto=document.getElementById('autoSpinBtn');
 
   try{
-    /* 0) Sortie de la grille actuelle vers le bas (rapide) */
     await dropOutOldGrid();
 
-    /* 1) reset affichages/chiffres */
-    $win.textContent='0.00 €';
-    $chains.textContent='0';
-    $winsLayer.innerHTML='';
+    document.getElementById('win').textContent='0.00 €';
+    document.getElementById('chains').textContent='0';
+    document.getElementById('wins').innerHTML='';
     tagMask=Array.from({length:ROWS},()=>Array(COLS).fill(false));
     justTagged.clear();
-    suppressNextTags = false; // reset prudence au nouveau spin
+    suppressNextTags = false;
 
-    /* 2) Paiement mise */
     bank-=BET; refreshBank();
 
-    /* 3) Nouvelle grille qui arrive du haut */
     gocRemaining=1;
     currentGrid=makeStartGrid();
-    renderGrid(currentGrid,new Set(),initialMark); // -> from-panel
+    renderGrid(currentGrid,new Set(),initialMark);
     await wait(FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow*0.75}));
 
-    /* 4) Boucle de cascades */
     let total=0, chain=0;
     let goldenUsed=false;
 
@@ -731,30 +852,32 @@ async function spin(){
       let wave=0; clusters.forEach(cl=>wave+=payFor(cl.id,cl.cells.length));
       total+=wave;
 
-      // 4.a POP + TAGS (respecte suppressNextTags)
       const placeTags = !suppressNextTags;
       const tagTime=showRemovalWithTag(currentGrid,clusters,placeTags);
       await wait(tagTime+40);
-      suppressNextTags = false; // suppression uniquement pour ce hit
+      suppressNextTags = false;
 
-      // 4.b TENTER GOLDEN AVANT GRAVITÉ -> AUCUNE CASCADE PENDANT L’ANIM
       if(!goldenUsed){
-        const hadGolden = await runGoldenIfPossible(currentGrid);
-        if(hadGolden) goldenUsed = true; // la GOC a été consommée (et suppressNextTags activé)
+        const hadGoldenPre = await runGoldenIfPossible(currentGrid);
+        if(hadGoldenPre) goldenUsed = true;
       }
 
-      // 4.c Seulement maintenant on applique la gravité (si des trous restent)
       const markFall=applyGravity(currentGrid);
-      $winsLayer.innerHTML='';
+      document.getElementById('wins').innerHTML='';
       renderGrid(currentGrid,new Set(),markFall);
       await wait( Math.max(
         LOCAL_FALL_MS + computeFallTime({baseMs:0,colDelay:DELAY.moveCol,rowDelay:DELAY.moveRow}),
         FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow})
       ) + 20 );
+
+      if(!goldenUsed){
+        const hadGoldenPost = await runGoldenIfPossible(currentGrid);
+        if(hadGoldenPost) goldenUsed = true;
+      }
     }
 
-    $win.textContent=total.toFixed(2)+' €';
-    $chains.textContent=chain;
+    document.getElementById('win').textContent=total.toFixed(2)+' €';
+    document.getElementById('chains').textContent=chain;
     bank+=total; refreshBank();
 
     if(isAuto && bank < BET){
@@ -802,3 +925,4 @@ document.getElementById('spinBtn').addEventListener('click', spin);
 </script>
 </body>
 </html>
+
