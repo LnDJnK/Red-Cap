@@ -13,6 +13,9 @@
     --autoOff1:#cbd5e1; --autoOff2:#94a3b8;
     --danger1:#fb7185; --danger2:#ef4444;
     --ease: cubic-bezier(.22,.61,.36,1);
+
+    /* Réglages visuels */
+    --fsredcap-gap: -50px;  /* écart entre fsredcap et le board */
   }
 
   @font-face{
@@ -27,9 +30,24 @@
     margin:0; color:var(--text);
     font:500 16px/1.2 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
     display:flex; align-items:flex-start; justify-content:center; padding:20px 12px 90px;
-    background: url("playing-screen.png") center / cover no-repeat fixed;
     background-color:#050a12;
+    overflow-x:hidden;
   }
+
+  /* ====== DOUBLE BACKGROUND avec slide ====== */
+  .bg-wrapper{
+    position: fixed; inset: 0; z-index: -1; overflow: hidden;
+  }
+  .bg-wrapper > div{
+    position: absolute; inset: 0;
+    will-change: transform;
+    transition: transform .8s var(--ease);
+    background-position: center; background-repeat:no-repeat; background-size:cover;
+  }
+  .bg-playing{ background-image:url("playing-screen.png"); transform:translateX(0%) }
+  .bg-fs{ background-image:url("FS screen.png"); transform:translateX(-100%) }
+  body.fs-active .bg-playing{ transform:translateX(100%) }
+  body.fs-active .bg-fs{ transform:translateX(0%) }
 
   .wrap{ width:min(960px, 95vw); position:relative; }
   .panel{
@@ -59,8 +77,7 @@
 
   /* ===== Sprites ===== */
   .sprite{
-    position: relative;
-    z-index:2; width:90%; height:90%;
+    position: relative; z-index:2; width:90%; height:90%;
     filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
     will-change: transform, opacity;
     transform: translate3d(0,0,0);
@@ -68,125 +85,96 @@
     transition: transform .2s var(--ease), opacity .2s var(--ease);
     display:flex; align-items:center; justify-content:center;
   }
-  .sprite-img{
-    width:100%; height:100%; object-fit:contain; pointer-events:none;
-  }
+  .sprite-img{ width:100%; height:100%; object-fit:contain; pointer-events:none; }
   .sprite-img.goc{ transform: none; }
-  /* FSS légèrement plus grand */
   .sprite-img.fss{ transform: scale(1.15); }
 
   .case-overlay{
-    position:absolute; inset:0;
-    display:flex; align-items:center; justify-content:center;
-    z-index:3; pointer-events:none;
-    transform-origin:center;
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    z-index:3; pointer-events:none; transform-origin:center;
   }
   .case-overlay img{ width:125%; height:125%; object-fit:contain; }
 
   .case-overlay.lock-rot{ animation: counterSpin .45s linear infinite; }
-  @keyframes counterSpin{
-    from{ transform: rotate(0deg) }
-    to  { transform: rotate(-360deg) }
-  }
+  @keyframes counterSpin{ from{transform:rotate(0)} to{transform:rotate(-360deg)} }
 
-  .case-overlay.explode{ animation: counterSpin .45s linear infinite, explodeCloud .6s ease forwards; }
+  .case-overlay.explode{
+    animation: counterSpin .45s linear infinite, explodeCloud .6s ease forwards;
+  }
   @keyframes explodeCloud{
-    0%   { transform: rotate(0deg)   scale(1);   opacity:1; }
-    40%  { transform: rotate(-160deg) scale(1.4);  opacity:.9; }
-    70%  { transform: rotate(-280deg) scale(1.8);  opacity:.6; }
-    100% { transform: rotate(-360deg) scale(2.2);  opacity:0; }
+    0%{ transform:rotate(0) scale(1); opacity:1 }
+    40%{ transform:rotate(-160deg) scale(1.4); opacity:.9 }
+    70%{ transform:rotate(-280deg) scale(1.8); opacity:.6 }
+    100%{ transform:rotate(-360deg) scale(2.2); opacity:0 }
   }
 
-  .sprite.from-panel{
-    --overshootPx: 0.04;
-    animation: fallFromPanel .46s var(--ease) both;
-  }
+  .sprite.from-panel{ --overshootPx:.04; animation: fallFromPanel .46s var(--ease) both; }
   @keyframes fallFromPanel{
-    0%   { transform: translateY(var(--startFromTop, -120vh)); opacity: 1 }
-    82%  { transform: translateY(calc(var(--overshootPx) * 100%)) }
-    100% { transform: translateY(0) }
+    0%{ transform:translateY(var(--startFromTop,-120vh)); opacity:1 }
+    82%{ transform:translateY(calc(var(--overshootPx)*100%)) }
+    100%{ transform:translateY(0) }
   }
 
   .sprite.fall{
-    --fallStart: -100%;
-    --startOpacity: 1;
-    --overshoot: 4%;
+    --fallStart:-100%; --startOpacity:1; --overshoot:4%;
     animation: fallVar .18s var(--ease) both;
   }
   @keyframes fallVar{
-    0%   { transform: translateY(var(--fallStart)); opacity: var(--startOpacity); }
-    75%  { transform: translateY(var(--overshoot)); opacity: 1; }
-    100% { transform: translateY(0);               opacity: 1; }
+    0%{ transform:translateY(var(--fallStart)); opacity:var(--startOpacity) }
+    75%{ transform:translateY(var(--overshoot)); opacity:1 }
+    100%{ transform:translateY(0); opacity:1 }
   }
 
-  .sprite.exit-down{ animation: exitDown .28s var(--ease) forwards; }
-  @keyframes exitDown{ to { transform: translateY(130%); opacity: 0; } }
+  .sprite.exit-down{ animation: exitDown .28s var(--ease) forwards }
+  @keyframes exitDown{ to{ transform:translateY(130%); opacity:0 } }
 
   .sprite.pop-win{ animation:popAndFade .46s var(--ease) forwards }
   @keyframes popAndFade{
-    0%   { transform:scale(1);    opacity:1 }
-    50%  { transform:scale(1.15); opacity:1 }
-    100% { transform:scale(.85);  opacity:0 }
+    0%{ transform:scale(1); opacity:1 }
+    50%{ transform:scale(1.15); opacity:1 }
+    100%{ transform:scale(.85); opacity:0 }
   }
 
   .sprite.spin{ animation: spin360 .5s linear forwards }
   .sprite.goc-spin{ animation: spin360 .5s linear forwards }
   .sprite.spin-loop{ animation: spin360 .45s linear infinite; }
   .sprite.spin-burst{ animation: spin360 .45s linear infinite; transform: scale(1.06); }
-  @keyframes spin360{ from{ transform: rotate(0deg) } to{ transform: rotate(360deg) } }
+  @keyframes spin360{ from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
-  .sprite.spin-fade-out{
-    animation: spin360 .45s linear infinite, fadeOut .55s var(--ease) forwards;
-  }
+  .sprite.spin-fade-out{ animation: spin360 .45s linear infinite, fadeOut .55s var(--ease) forwards }
   @keyframes fadeOut{ from{opacity:1} to{opacity:0} }
 
-  .sprite.fade-out-fast{
-    animation: fadeOut .18s var(--ease) forwards;
-  }
+  .sprite.fade-out-fast{ animation: fadeOut .18s var(--ease) forwards }
 
-  .sprite.tornado-in{ animation: tornadoIn .5s var(--ease) both; }
+  .sprite.tornado-in{ animation: tornadoIn .5s var(--ease) both }
   @keyframes tornadoIn{
-    0%   { transform: scale(0) rotate(0deg);   opacity:0 }
-    60%  { transform: scale(1.5) rotate(300deg); opacity:1 }
-    100% { transform: scale(1) rotate(360deg); opacity:1 }
+    0%{ transform:scale(0) rotate(0); opacity:0 }
+    60%{ transform:scale(1.5) rotate(300deg); opacity:1 }
+    100%{ transform:scale(1) rotate(360deg); opacity:1 }
   }
 
-  .sprite.spawn-zoom{ animation: spawnZoom .36s var(--ease) both; }
+  .sprite.spawn-zoom{ animation: spawnZoom .36s var(--ease) both }
   @keyframes spawnZoom{
-    0%   { transform: scale(1.12); opacity: 0 }
-    60%  { transform: scale(0.96); opacity: 1 }
-    100% { transform: scale(1);   opacity: 1 }
+    0%{ transform:scale(1.12); opacity:0 }
+    60%{ transform:scale(0.96); opacity:1 }
+    100%{ transform:scale(1); opacity:1 }
   }
 
   .cell.dimmed::after{
-    content:"";
-    position:absolute; inset:0;
-    background:#000;
-    opacity:.38;
-    border-radius:12px;
-    pointer-events:none;
-    transition: opacity .18s var(--ease);
-    z-index: 6;
+    content:""; position:absolute; inset:0; background:#000; opacity:.38;
+    border-radius:12px; pointer-events:none; transition:opacity .18s var(--ease); z-index:6;
   }
-  .cell.dimmed.fadeout::after{ opacity:0; }
+  .cell.dimmed.fadeout::after{ opacity:0 }
 
-  .sprite.hit-pulse{ animation: hitPulse .48s var(--ease) infinite alternate; }
-  @keyframes hitPulse{
-    from{ transform: scale(1) }
-    to  { transform: scale(1.08) }
-  }
+  .sprite.hit-pulse{ animation: hitPulse .48s var(--ease) infinite alternate }
+  @keyframes hitPulse{ from{transform:scale(1)} to{transform:scale(1.08)} }
 
   .hit-shine{
-    position:absolute; inset:0;
-    border-radius:12px;
-    background: rgba(255,255,255,.26);
-    mix-blend-mode: screen;
-    pointer-events:none;
-    opacity:0;
-    transition: opacity .14s var(--ease);
-    z-index:3;
+    position:absolute; inset:0; border-radius:12px;
+    background: rgba(255,255,255,.26); mix-blend-mode:screen;
+    pointer-events:none; opacity:0; transition:opacity .14s var(--ease); z-index:3;
   }
-  .hit-shine.on{ opacity:.85; }
+  .hit-shine.on{ opacity:.85 }
 
   .tag-bg{
     position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
@@ -195,40 +183,27 @@
   .tag-bg img{ width:95%; height:500%; object-fit:contain; filter:drop-shadow(0 6px 12px rgba(0,0,0,.35)) }
   .tag-bg.tag-pop{ animation: tagPop .38s var(--ease) forwards }
   @keyframes tagPop{
-    0%   { transform: scale(.6);  opacity:0 }
-    70%  { transform: scale(1.06); opacity:.95 }
-    100% { transform: scale(1);   opacity:.95 }
+    0%{ transform:scale(.6); opacity:0 }
+    70%{ transform:scale(1.06); opacity:.95 }
+    100%{ transform:scale(1); opacity:.95 }
   }
-  .tag-bg.tag-fade-out{ animation: tagFade .18s ease forwards; }
-  @keyframes tagFade{ to { opacity:0; transform: scale(.9); } }
+  .tag-bg.tag-fade-out{ animation: tagFade .18s ease forwards }
+  @keyframes tagFade{ to{ opacity:0; transform:scale(.9) } }
 
-  .wins-layer{
-    position:absolute; inset:0; pointer-events:none; z-index:10;
-  }
+  .wins-layer{ position:absolute; inset:0; pointer-events:none; z-index:10 }
   .win-float{
-    position:absolute; left:50%; top:50%;
-    transform: translate(-50%,-50%) scale(0);
-    transform-origin:center;
-    font-family: "urban", ui-sans-serif, system-ui;
-    font-weight: 900;
-    line-height: 1;
-    letter-spacing: .5px;
-    color: #ff1f1f;
-    -webkit-text-stroke: 3px #ffffff;
-    text-shadow:
-      0 10px 0 rgba(0,0,0,.55),
-      0 18px 34px rgba(0,0,0,.75),
-      0 0 2px rgba(0,0,0,.9);
-    font-size: clamp(56px, 9vw, 180px);
-    opacity: 0;
-    animation: winScale .8s var(--ease) forwards,
-               winOut .6s var(--ease) forwards 3.0s;
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%) scale(0); transform-origin:center;
+    font-family:"urban", ui-sans-serif, system-ui; font-weight:900; line-height:1; letter-spacing:.5px;
+    color:#ff1f1f; -webkit-text-stroke:3px #fff;
+    text-shadow:0 10px 0 rgba(0,0,0,.55), 0 18px 34px rgba(0,0,0,.75), 0 0 2px rgba(0,0,0,.9);
+    font-size:clamp(56px, 9vw, 180px); opacity:0;
+    animation: winScale .8s var(--ease) forwards, winOut .6s var(--ease) forwards 3s;
   }
   @keyframes winScale{
-    0%   { transform: translate(-50%,-50%) scale(0);   opacity:0 }
-    15%  { opacity:1 }
-    70%  { transform: translate(-50%,-50%) scale(1.06) }
-    100% { transform: translate(-50%,-50%) scale(1) }
+    0%{ transform:translate(-50%,-50%) scale(0); opacity:0 }
+    15%{ opacity:1 }
+    70%{ transform:translate(-50%,-50%) scale(1.06) }
+    100%{ transform:translate(-50%,-50%) scale(1) }
   }
   @keyframes winOut{ from{opacity:1} to{opacity:0} }
 
@@ -258,37 +233,53 @@
     color:#0b1220;
     box-shadow:0 6px 18px rgba(15,23,42,.35);
   }
-  .btn-auto.active{
-    background:linear-gradient(180deg,var(--autoOn1),var(--autoOn2));
-    color:#04140d;
-  }
-  .btn-auto.stopping{
-    background:linear-gradient(180deg,var(--danger1),var(--danger2));
-    color:white;
-  }
+  .btn-auto.active{ background:linear-gradient(180deg,var(--autoOn1),var(--autoOn2)); color:#04140d }
+  .btn-auto.stopping{ background:linear-gradient(180deg,var(--danger1),var(--danger2)); color:white }
 
   @media (max-width:720px){
     .sprite{ width:86%; height:86% }
     .grid{ padding:10px }
   }
 
+  /* ===== Personnage : glisse et sort complètement ===== */
   .character{
     position: fixed;
-    right: clamp(140px, 5vw, 110px);
+    right: clamp(110px, 5vw, 140px); /* (ordre corrigé) */
     bottom: -65px;
     height: min(92vh, 880px);
     max-height: calc(100vh - 110px);
     pointer-events: none;
     z-index: 0;
+    transition: right .8s var(--ease), opacity .4s var(--ease);
+    will-change: right, opacity;
   }
-  .logo {
-    position: absolute;
-    top: -60px;
-    left: -500px;
-    height: 500px;
-    pointer-events: none;
-    z-index: 2;
+  body.fs-active .character{
+    right: -60vw;   /* part franchement à droite du viewport */
+    opacity: 0;
   }
+
+  /* ===== Logo : slide vers la droite (tu as mis 500px) ===== */
+  .logo{
+    position: absolute; top:-60px; left:-500px; height:500px; pointer-events:none; z-index:2;
+    transition: transform .8s var(--ease); will-change: transform;
+  }
+  body.fs-active .logo{ transform: translateX(calc(100vw - 500px)); }
+
+  /* ===== FS Red Cap : arrive de la GAUCHE et se place à gauche du board ===== */
+  .fsredcap {
+  position: fixed;
+  left: -400px;       /* position de départ hors-écran */
+  bottom: -85px;
+  height: min(110vh, 1200px); /* <<< ici tu ajustes la taille */
+  max-height: calc(100vh - 80px);
+  pointer-events: none;
+  z-index: 1;
+  transition: transform .8s var(--ease);
+}
+body.fs-active .fsredcap {
+  transform: translateX(450px); /* arrive dans la position finale */
+}
+
 
   /* ====== OVERLAY GROS GAINS ====== */
   .bigwin-overlay{
@@ -318,120 +309,91 @@
     filter: drop-shadow(0 18px 34px rgba(0,0,0,.65));
     user-select:none; pointer-events:none;
   }
-  @keyframes heartBeat{
-    0%,100%{ transform:scale(1) }
-    46%{ transform:scale(1.08) }
-  }
+  @keyframes heartBeat{ 0%,100%{transform:scale(1)} 46%{transform:scale(1.08)} }
 
-  /* === AJOUTS POUR FSS (flash + squeeze/explode au PREMIER PLAN) === */
+  /* === Effets FSS === */
   .fss-veil{
-    position:absolute; inset:0;
-    border-radius:12px;
-    background: rgba(255,255,255,.75);
-    mix-blend-mode: screen;
-    opacity:0;
-    pointer-events:none;
-    z-index:5;
+    position:absolute; inset:0; border-radius:12px;
+    background: rgba(255,255,255,.75); mix-blend-mode:screen;
+    opacity:0; pointer-events:none; z-index:5;
     animation: fssFlash .22s ease-in-out 4 both;
   }
-  @keyframes fssFlash{
-    0%{opacity:0}
-    50%{opacity:1}
-    100%{opacity:0}
-  }
+  @keyframes fssFlash{ 0%{opacity:0} 50%{opacity:1} 100%{opacity:0} }
 
-  /* Élément FX détaché (au dessus de la grille) */
   .fss-pop-fx{
-    position:absolute;
-    transform: translate(-50%,-50%) scale(1);
-    transform-origin:center;
-    z-index:50;
-    width:var(--size,100px);
-    height:var(--size,100px);
-    pointer-events:none;
-    display:flex; align-items:center; justify-content:center;
+    position:absolute; transform:translate(-50%,-50%) scale(1); transform-origin:center;
+    z-index:50; width:var(--size,100px); height:var(--size,100px);
+    pointer-events:none; display:flex; align-items:center; justify-content:center;
     filter:drop-shadow(0 18px 28px rgba(0,0,0,.45));
   }
-  .fss-pop-fx img{
-    width:100%; height:100%; object-fit:contain;
-  }
-
-  .fss-front-pop{
-    animation: fssFrontBalloon 1.2s cubic-bezier(.22,.61,.36,1) forwards;
-  }
+  .fss-pop-fx img{ width:100%; height:100%; object-fit:contain }
+  .fss-front-pop{ animation: fssFrontBalloon 1.2s cubic-bezier(.22,.61,.36,1) forwards }
   @keyframes fssFrontBalloon{
-    0%   { transform: translate(-50%,-50%) scale(1);   opacity:1 }
-    15%  { transform: translate(-50%,-50%) scale(1.3,.9) }
-    30%  { transform: translate(-50%,-50%) scale(.9,1.3) }
-    50%  { transform: translate(-50%,-50%) scale(2.0); opacity:1 }
-    70%  { transform: translate(-50%,-50%) scale(4.0); opacity:1 }
-    90%  { transform: translate(-50%,-50%) scale(6.0); opacity:.9 }
-    100% { transform: translate(-50%,-50%) scale(8.0); opacity:0 }
+    0%{ transform:translate(-50%,-50%) scale(1); opacity:1 }
+    15%{ transform:translate(-50%,-50%) scale(1.3,.9) }
+    30%{ transform:translate(-50%,-50%) scale(.9,1.3) }
+    50%{ transform:translate(-50%,-50%) scale(2) }
+    70%{ transform:translate(-50%,-50%) scale(4) }
+    90%{ transform:translate(-50%,-50%) scale(6); opacity:.9 }
+    100%{ transform:translate(-50%,-50%) scale(8); opacity:0 }
   }
 
-  /* === POP-UP FREE SPINS (effet TV) === */
   .fs-popup{
-    position:fixed; inset:0;
-    background: rgba(0,0,0,.85);
-    display:none;
-    align-items:center; justify-content:center;
-    z-index:20000;
-    cursor:pointer;
+    position:fixed; inset:0; background: rgba(0,0,0,.85);
+    display:none; align-items:center; justify-content:center; z-index:20000; cursor:pointer;
   }
   .fs-popup-content{
-    background:#111a2a;
-    border:4px solid #ffd54a;
-    border-radius:16px;
-    padding:30px 28px;
-    text-align:center;
-    color:#fff;
-    font-family:"urban", ui-sans-serif, system-ui;
+    background:#111a2a; border:4px solid #ffd54a; border-radius:16px;
+    padding:30px 28px; text-align:center; color:#fff; font-family:"urban", ui-sans-serif, system-ui;
     max-width:720px; width:min(92vw,720px);
-    transform:scale(0);
-    opacity:0;
-    animation: tvOn .6s ease forwards;
+    transform:scale(0); opacity:0; animation: tvOn .6s ease forwards;
     box-shadow:0 22px 70px rgba(0,0,0,.55);
   }
-  .fs-popup-content img{ max-width:min(45vw,260px); height:auto; margin-bottom:16px; }
+  .fs-popup-content img{ max-width:min(45vw,260px); height:auto; margin-bottom:16px }
   .fs-popup-content h1{
-    font-size: clamp(22px, 4.2vw, 44px);
-    margin:6px 0 10px;
-    color:#ffd54a;
-    -webkit-text-stroke:1px #1a1200;
-    letter-spacing:.2px;
+    font-size: clamp(22px, 4.2vw, 44px); margin:6px 0 10px; color:#ffd54a; -webkit-text-stroke:1px #1a1200; letter-spacing:.2px;
   }
-  .fs-popup-content p{ font-size: clamp(14px, 2.1vw, 20px); margin:8px 0; }
-  .fs-popup-content small{ display:block; margin-top:14px; font-size: clamp(12px,1.8vw,14px); opacity:.85; }
+  .fs-popup-content p{ font-size: clamp(14px, 2.1vw, 20px); margin:8px 0 }
+  .fs-popup-content small{ display:block; margin-top:14px; font-size: clamp(12px,1.8vw,14px); opacity:.85 }
 
   @keyframes tvOn{
-    0%   { transform: scale(0, .02); opacity:0 }
-    40%  { transform: scale(1.2, .02); opacity:1 }
-    70%  { transform: scale(1.2, 1.2) }
-    100% { transform: scale(1, 1); opacity:1 }
+    0%{ transform:scale(0,.02); opacity:0 }
+    40%{ transform:scale(1.2,.02); opacity:1 }
+    70%{ transform:scale(1.2,1.2) }
+    100%{ transform:scale(1,1); opacity:1 }
   }
-
-  @keyframes tvOff {
-  0%   { transform: scale(1,1); opacity:1 }
-  40%  { transform: scale(1.2,0.1); opacity:1 }
-  70%  { transform: scale(0.8,0.02); opacity:.8 }
-  100% { transform: scale(0,0); opacity:0 }
-}
-.fs-popup-content.tv-off {
-  animation: tvOff .5s ease forwards;
-}
-
+  @keyframes tvOff{
+    0%{ transform:scale(1,1); opacity:1 }
+    40%{ transform:scale(1.2,0.1) }
+    70%{ transform:scale(0.8,0.02); opacity:.8 }
+    100%{ transform:scale(0,0); opacity:0 }
+  }
+  .fs-popup-content.tv-off{ animation: tvOff .5s ease forwards }
 </style>
 </head>
 <body>
+
+  <!-- Double background -->
+  <div class="bg-wrapper">
+    <div class="bg-playing"></div>
+    <div class="bg-fs"></div>
+  </div>
+
   <div class="wrap">
+    <!-- fsredcap : se place à GAUCHE du board quand FS -->
+    <img src="fsredcap.png" alt="FS Red Cap" class="fsredcap">
+
     <div class="panel">
       <div id="grid" class="grid" aria-label="Grille de jeu"></div>
       <div id="wins" class="wins-layer" aria-hidden="true"></div>
       <div id="legend" style="display:none"></div>
     </div>
+
+    <!-- Logo qui glisse à droite -->
     <img src="logo.png" alt="Logo" class="logo">
   </div>
 
+  <!-- Personnage qui sort par la droite -->
   <img src="character.png" alt="Character" class="character">
 
   <div class="controls">
@@ -443,13 +405,13 @@
     <button id="spinBtn" class="btn">Spin</button>
   </div>
 
-  <!-- ===== Overlay de fin de spin (décompte + badge palier) ===== -->
+  <!-- Overlay gros gains -->
   <div id="bigwin" class="bigwin-overlay" aria-hidden="true">
     <div id="bigwinAmount" class="bigwin-amount">0.00 €</div>
     <img id="bigwinBadge" class="bigwin-badge" src="" alt="" style="display:none">
   </div>
 
-  <!-- ===== POP-UP FREE SPINS (après explosion FSS) ===== -->
+  <!-- POP-UP FREE SPINS -->
   <div id="fsPopup" class="fs-popup" aria-hidden="true">
     <div class="fs-popup-content">
       <img src="fs.png" alt="FS">
@@ -499,12 +461,10 @@ const SYM=[
   {id:'GOC',name:'Golden Cap',src:'golden_cap.png'},
   {id:'FSS',name:'Free Spin',src:'fs.png'}
 ];
-/* Poids (GOC/FSS rares) + cap FSS à 4 via randSymForGrid */
 const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.02,0.02];
 const IDX_GOC=SYM.findIndex(s=>s.id==='GOC');
 const IDX_FSS=SYM.findIndex(s=>s.id==='FSS');
 
-/* === Helpers GOC/FSS === */
 function gridHasGOC(grid){
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
     if(grid[r][c]==='GOC') return true;
@@ -519,11 +479,9 @@ function countFSS(grid){
   return n;
 }
 
-/* === Génération symbole, avec blocage 2e GOC & FSS>4 === */
 function randSymForGrid(grid){
   const w = WEIGHTS.slice();
 
-  // 1) Bloquer une 2e GOC
   let alreadyHasGOC = false;
   for(let r=0;r<ROWS;r++){
     for(let c=0;c<COLS;c++){
@@ -533,11 +491,9 @@ function randSymForGrid(grid){
   }
   if(alreadyHasGOC) w[IDX_GOC] = 0;
 
-  // 2) Bloquer FSS au-delà de 4 sur le board
   const fssCount = countFSS(grid);
   if(fssCount >= 4) w[IDX_FSS] = 0;
 
-  // Tirage pondéré
   const sum = w.reduce((a,b)=>a+b,0);
   let r = Math.random()*sum, acc=0;
   for(let i=0;i<SYM.length;i++){ acc+=w[i]; if(r<=acc) return SYM[i].id; }
@@ -590,7 +546,6 @@ function makeNode(sym){
   return wrap;
 }
 
-/* Remplacement propre et instantané */
 function swapSpriteAt(cells, r, c, newId){
   const cell = cells[r*COLS + c];
   if(!cell) return;
@@ -687,8 +642,8 @@ function renderGrid(grid, marks=new Set(), markMeta=()=>null){
   }
 }
 
-/* ===== Construction de grille avec 0..1 GOC et FSS ≤ 4 ===== */
-function makeStartGrid(){ 
+/* ===== Construction de grille ===== */
+function makeStartGrid(){
   const grid = Array.from({length:ROWS},()=>Array(COLS).fill(null));
   for(let r=0;r<ROWS;r++){
     for(let c=0;c<COLS;c++){
@@ -961,7 +916,7 @@ async function runGoldenIfPossible(currentGrid){
   return true;
 }
 
-/* ------------------ AJOUT : animation & stop Auto pour FSS + POPUP -------- */
+/* ------------------ FSS + POPUP ------------------ */
 let fssEffectPlayedThisSpin = false;
 
 function getFSSPositions(grid){
@@ -972,7 +927,6 @@ function getFSSPositions(grid){
   return pos;
 }
 
-/* crée un FX détaché au centre de la case (dans #wins) */
 function spawnFSSFrontFXAtCell(cellEl){
   const panel = document.querySelector('.panel');
   const panelRect = panel.getBoundingClientRect();
@@ -1000,7 +954,6 @@ async function maybePlayFSSEffect(grid){
   const positions = getFSSPositions(grid);
   if(positions.length!==3 && positions.length!==4) return false;
 
-  // Stop auto si actif
   if(isAuto){
     isAuto = false;
     const btn = document.getElementById('autoSpinBtn');
@@ -1008,24 +961,21 @@ async function maybePlayFSSEffect(grid){
     btn.textContent = 'Auto Spin';
   }
 
-  // Assombrir le reste
   const focusSet = new Set(positions.map(([r,c])=>`${r},${c}`));
   applyHitPresentation(focusSet, true);
 
   const cells=[...$grid.children];
-  const fsAward = (positions.length===3?10:12); // 10 si 3 FSS, 12 si 4 FSS
+  const fsAward = (positions.length===3?10:12);
 
   const promises=[];
   positions.forEach(([r,c])=>{
     const cell=cells[r*COLS+c];
     if(!cell) return;
 
-    // voile blanc clignotant
     const veil=document.createElement('div');
     veil.className='fss-veil';
     cell.appendChild(veil);
 
-    // on retire tout shine hérité
     cell.querySelector('.hit-shine')?.remove();
 
     const p=new Promise(res=>{
@@ -1033,31 +983,26 @@ async function maybePlayFSSEffect(grid){
         veil.removeEventListener('animationend', endFlash);
         veil.remove();
 
-        // Passe au premier plan : FX détaché
         const spr = cell.querySelector('.sprite');
         if(spr){
-          spr.classList.remove('hit-pulse'); // stop la pulsation
-          spr.remove();                      // supprime le sprite de la grille
-          grid[r][c]=null;                   // vide la case
+          spr.classList.remove('hit-pulse');
+          spr.remove();
+          grid[r][c]=null;
 
           const fx = spawnFSSFrontFXAtCell(cell);
-          fx.addEventListener('animationend', ()=>{
-            fx.remove(); // éclaté & disparu
-            res();
-          }, {once:true});
+          fx.addEventListener('animationend', ()=>{ fx.remove(); res(); }, {once:true});
         }else{
           res();
         }
       };
       veil.addEventListener('animationend', endFlash, {once:true});
-      setTimeout(endFlash, 1200); // fallback
+      setTimeout(endFlash, 1200);
     });
     promises.push(p);
   });
 
   await Promise.all(promises);
 
-  // Retire le focus puis gravité
   applyHitPresentation(focusSet, false);
 
   const markFall=applyGravity(grid);
@@ -1067,14 +1012,13 @@ async function maybePlayFSSEffect(grid){
     FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow})
   ) + 20 );
 
-  // Affiche la pop-up Free Spins avec effet TV une fois TOUT fini
   showFSPopup(fsAward);
 
   fssEffectPlayedThisSpin = true;
   return true;
 }
 
-/* ------- POPUP FS ------- */
+/* ------- POPUP FS + slides synchronisés ------- */
 function showFSPopup(fsCount){
   const popup=document.getElementById('fsPopup');
   const title=document.getElementById('fsTitle');
@@ -1087,6 +1031,8 @@ function showFSPopup(fsCount){
     content.addEventListener('animationend', ()=>{
       popup.style.display='none';
       content.classList.remove('tv-off');
+      /* Active tous les slides via CSS (BG, logo, character OUT, fsredcap IN) */
+      document.body.classList.add('fs-active');
     }, {once:true});
   };
 }
@@ -1160,20 +1106,6 @@ function showTotalWinAnimation(total){
     document.querySelector('.panel').addEventListener('mousedown', skipHandler, { once:true });
     overlay.addEventListener('mousedown', skipHandler, { once:true });
 
-    const ensureHint = ()=>{
-      let hint = document.getElementById('bigwinHint');
-      if(!hint){
-        hint = document.createElement('div');
-        hint.id = 'bigwinHint';
-        hint.style.marginTop = '10px';
-        hint.style.fontWeight = '700';
-        hint.style.opacity = '.9';
-        hint.style.userSelect = 'none';
-        hint.style.pointerEvents = 'none';
-        overlay.appendChild(hint);
-      }
-    };
-
     const close = ()=>{
       overlay.style.display='none';
       bigWinRunning = false;
@@ -1193,7 +1125,6 @@ function showTotalWinAnimation(total){
         requestAnimationFrame(tick);
       }else{
         amountEl.textContent = total.toFixed(2) + ' €';
-        ensureHint();
         overlay.addEventListener('mousedown', close, { once:true });
         document.querySelector('.panel').addEventListener('mousedown', close, { once:true });
       }
@@ -1208,7 +1139,7 @@ async function spin(){
   if(bank < BET) return;
 
   isSpinning = true;
-  fssEffectPlayedThisSpin = false; // reset pour ce spin
+  fssEffectPlayedThisSpin = false;
   $btn.disabled=true;
   const $auto=document.getElementById('autoSpinBtn');
 
@@ -1228,13 +1159,12 @@ async function spin(){
     renderGrid(currentGrid,new Set(),initialMark);
     await wait(FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow*0.75}));
 
-    /* === Détection FSS juste après la drop initiale === */
+    /* FSS juste après la drop initiale */
     await maybePlayFSSEffect(currentGrid);
 
     let total=0, chain=0;
 
     while(true){
-      // 1) cascades naturelles
       while(true){
         const clusters=findAllClusters(currentGrid);
         if(clusters.length===0) break;
@@ -1256,11 +1186,9 @@ async function spin(){
           FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow})
         ) + 20 );
 
-        /* === Détection FSS après chaque chute === */
         await maybePlayFSSEffect(currentGrid);
       }
 
-      // 2) GOC si des tags restent
       const fired = await runGoldenIfPossible(currentGrid);
       if(!fired) break;
     }
@@ -1317,6 +1245,4 @@ document.getElementById('spinBtn').addEventListener('click', spin);
 </script>
 </body>
 </html>
-
-
 
