@@ -461,7 +461,7 @@ const SYM=[
   {id:'GOC',name:'Golden Cap',src:'golden_cap.png'},
   {id:'FSS',name:'Free Spin',src:'fs.png'}
 ];
-const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.02,0.02];
+const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.02,0.08];
 const IDX_GOC=SYM.findIndex(s=>s.id==='GOC');
 const IDX_FSS=SYM.findIndex(s=>s.id==='FSS');
 
@@ -1124,7 +1124,7 @@ function showTotalWinAnimation(total){
       if(currentCents < totalCents && !skipped){
         requestAnimationFrame(tick);
       }else{
-        amountEl.textContent = total.toFixed(2) + ' €';
+        amountEl.textContent = total.toFixed(2) + ' $';
         overlay.addEventListener('mousedown', close, { once:true });
         document.querySelector('.panel').addEventListener('mousedown', close, { once:true });
       }
@@ -1245,4 +1245,5 @@ document.getElementById('spinBtn').addEventListener('click', spin);
 </script>
 </body>
 </html>
+
 
