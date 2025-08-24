@@ -140,7 +140,7 @@
   }
   @keyframes fadeOut{ from{opacity:1} to{opacity:0} }
 
-  /* >>> helper pour retirer vite un ancien sprite sans spin */
+  /* >>> helper disponible (non requis si on retire direct) */
   .sprite.fade-out-fast{
     animation: fadeOut .18s var(--ease) forwards;
   }
@@ -393,7 +393,7 @@ const SYM=[
   {id:'FSS',name:'Free Spin',src:'fs.png'}
 ];
 /* Poids (GOC/FSS rares) + cap FSS à 4 via randSymForGrid */
-const WEIGHTS=[0.3,0.3,0.3,0.3,0.3,0.15,0.15,0.1,0.1,0.08,0.05,0.02];
+const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.02,0.02];
 const IDX_GOC=SYM.findIndex(s=>s.id==='GOC');
 const IDX_FSS=SYM.findIndex(s=>s.id==='FSS');
 
@@ -483,16 +483,15 @@ function makeNode(sym){
   return wrap;
 }
 
-/* >>> Remplacer proprement le sprite d'une case */
+/* >>> Remplacer proprement le sprite d'une case (sans chevauchement) */
 function swapSpriteAt(cells, r, c, newId){
   const cell = cells[r*COLS + c];
   if(!cell) return;
 
   const oldSprite = cell.querySelector('.sprite');
   if(oldSprite){
-    oldSprite.classList.remove('spin-loop','spin-burst');
-    oldSprite.classList.add('fade-out-fast');
-    setTimeout(()=> oldSprite.remove(), 180);
+    // suppression immédiate pour éviter tout doublon visuel
+    oldSprite.remove();
   }
 
   const wrap = makeNode(SYM.find(s=>s.id===newId));
@@ -824,7 +823,6 @@ async function runGoldenIfPossible(currentGrid){
   if(anyTags()){
     for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
       if(tagMask[r][c]){
-
         // RÈGLE : ne PAS remplacer un FSS même s'il est sur un tag
         if(currentGrid[r][c] === 'FSS') continue;
 
@@ -834,7 +832,7 @@ async function runGoldenIfPossible(currentGrid){
     }
   }
 
-  // Remplacer aussi la case GOC elle-même proprement
+  // Remplacer aussi la case GOC elle-même SANS chevauchement
   swapSpriteAt(cells, gr, gc, targetId);
 
   if(targetWrap){ targetWrap.classList.remove('spin-burst'); }
@@ -942,10 +940,7 @@ function showTotalWinAnimation(total){
         hint.style.opacity = '.9';
         hint.style.userSelect = 'none';
         hint.style.pointerEvents = 'none';
-        hint.textContent = 'Clique pour continuer';
         overlay.appendChild(hint);
-      }else{
-        hint.textContent = 'Clique pour continuer';
       }
     };
 
@@ -1086,6 +1081,7 @@ document.getElementById('spinBtn').addEventListener('click', spin);
 </script>
 </body>
 </html>
+
 
 
 
