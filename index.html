@@ -18,7 +18,7 @@
 
   @font-face{
     font-family: "urban";
-    src: url("/font/urban.ttf") format("truetype");
+    src: url("font/urban.ttf") format("truetype");
     font-display: swap;
   }
 
@@ -441,7 +441,7 @@
 
   <div class="wrap">
     <!-- fsredcap : se place à GAUCHE du board quand FS -->
-    <img src="/img/fsredcap.png" alt="FS Red Cap" class="fsredcap">
+    <img src="img/fsredcap.png" alt="FS Red Cap" class="fsredcap">
 
     <div class="panel">
       <div id="grid" class="grid" aria-label="Grille de jeu"></div>
@@ -450,11 +450,11 @@
     </div>
 
     <!-- Logo qui glisse à droite -->
-    <img src="/img/logo.png" alt="Logo" class="logo">
+    <img src="img/logo.png" alt="Logo" class="logo">
   </div>
 
   <!-- Personnage qui sort par la droite -->
-  <img src="/img/character.png" alt="Character" class="character">
+  <img src="img/character.png" alt="Character" class="character">
 
   <div class="controls">
     <div class="badge">Demo Bet: 1.00 $</div>
@@ -492,7 +492,7 @@
   <!-- POP-UP FREE SPINS (entrée bonus) -->
   <div id="fsPopup" class="fs-popup" aria-hidden="true">
     <div class="fs-popup-content">
-      <img src="/img/fs.png" alt="FS">
+      <img src="img/fs.png" alt="FS">
       <h1 id="fsTitle">YOU HAVE BEEN AWARDED X FREE SPINS</h1>
       <p>During this slithering bonus, tags are not removed from the board between spins until you land the Red Cap symbol</p>
       <small>CLICK TO CONTINUE</small>
@@ -571,8 +571,8 @@ const Sound = (() => {
 })();
 
 // Déclare les sons (.ogg + .mp3 + .wav)
-Sound.add('spin',    ['/audio/spin.wav'],         { volume: 1,   pool: 1 });
-Sound.add('cascade', ['/audio/cascade.wav'], { volume: 1.0, pool: 3 });
+Sound.add('spin',    ['audio/spin.wav'],         { volume: 1,   pool: 1 });
+Sound.add('cascade', ['audio/cascade.wav'], { volume: 1.0, pool: 3 });
 
 /* ------------------ config ------------------ */
 const ROWS=5, COLS=6, MIN_CLUSTER=5;
@@ -600,18 +600,18 @@ function refreshBank(){ $bank.textContent=fmt(bank)+' $'; }
 
 /* symboles */
 const SYM=[
-  {id:'TOK',name:'Jeton',src:'/img/token.png'},
-  {id:'BAN',name:'Bandana',src:'/img/bandana.png'},
-  {id:'CAN',name:'Cannette',src:'/img/can.png'},
-  {id:'SHO',name:'Shoes',src:'/img/shoes.png'},
-  {id:'BAG',name:'Bag',src:'/img/bag.png'},
-  {id:'WAL',name:'Walkman',src:'/img/walkman.png'},
-  {id:'SUN',name:'Sunglasses',src:'/img/sunglasses.png'},
-  {id:'SK8',name:'Skate',src:'/img/skate.png'},
-  {id:'HED',name:'Casque',src:'/img/audio.png'},
-  {id:'CAP',name:'Red Cap',src:'/img/red cap.png',alt:'/img/red-cap.png'},
-  {id:'GOC',name:'Golden Cap',src:'/img/golden_cap.png'},
-  {id:'FSS',name:'Free Spin',src:'/img/fs.png'}
+  {id:'TOK',name:'Jeton',src:'img/token.png'},
+  {id:'BAN',name:'Bandana',src:'img/bandana.png'},
+  {id:'CAN',name:'Cannette',src:'img/can.png'},
+  {id:'SHO',name:'Shoes',src:'img/shoes.png'},
+  {id:'BAG',name:'Bag',src:'img/bag.png'},
+  {id:'WAL',name:'Walkman',src:'img/walkman.png'},
+  {id:'SUN',name:'Sunglasses',src:'img/sunglasses.png'},
+  {id:'SK8',name:'Skate',src:'img/skate.png'},
+  {id:'HED',name:'Casque',src:'img/audio.png'},
+  {id:'CAP',name:'Red Cap',src:'img/red cap.png',alt:'/img/red-cap.png'},
+  {id:'GOC',name:'Golden Cap',src:'img/golden_cap.png'},
+  {id:'FSS',name:'Free Spin',src:'img/fs.png'}
 ];
 const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.01,0.05];
 const IDX_GOC=SYM.findIndex(s=>s.id==='GOC');
@@ -1619,6 +1619,7 @@ document.getElementById('spinBtn').addEventListener('click', spin);
 </script>
 </body>
 </html>
+
 
 
 
