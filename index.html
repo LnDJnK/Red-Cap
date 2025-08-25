@@ -40,8 +40,8 @@
     transition: transform .8s var(--ease);
     background-position: center; background-repeat:no-repeat; background-size:cover;
   }
-  .bg-playing{ background-image:url("playing-screen.png"); transform:translateX(0%) }
-  .bg-fs{ background-image:url("FS screen.png"); transform:translateX(-100%) }
+  .bg-playing{ background-image:url("img/playing-screen.png"); transform:translateX(0%) }
+  .bg-fs{ background-image:url("img/FS screen.png"); transform:translateX(-100%) }
   body.fs-active .bg-playing{ transform:translateX(100%) }
   body.fs-active .bg-fs{ transform:translateX(0%) }
 
@@ -696,7 +696,7 @@ function makeNode(sym){
   if(sym.id==='GOC'){
     const overlay=document.createElement('div');
     overlay.className='case-overlay';
-    overlay.appendChild(makeImg('case.png'));
+    overlay.appendChild(makeImg('img/case.png'));
     wrap.appendChild(overlay);
   }
   return wrap;
@@ -1619,6 +1619,7 @@ document.getElementById('spinBtn').addEventListener('click', spin);
 </script>
 </body>
 </html>
+
 
 
 
