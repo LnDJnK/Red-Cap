@@ -509,6 +509,71 @@
   </div>
 
 <script>
+// ========= AUDIO MANAGER (multi-format + pooling) =========
+const Sound = (() => {
+  const pools = {};
+  let unlocked = false;
+
+  function pickSupported(urls){
+    const a = document.createElement('audio');
+    for(const u of urls){
+      const type =
+        u.endsWith('.mp3') ? 'audio/mpeg' :
+        u.endsWith('.ogg') ? 'audio/ogg'  :
+        'audio/wav';
+      if (a.canPlayType(type)) return u;
+    }
+    return urls[0]; // fallback
+  }
+
+  function add(name, urls, { volume=1, pool=3 } = {}){
+    const src = pickSupported(urls);
+    const arr = [];
+    for(let i=0;i<pool;i++){
+      const el = new Audio(src);
+      el.preload = 'auto';
+      el.volume = volume;
+      arr.push(el);
+    }
+    pools[name] = { arr, idx: 0 };
+  }
+
+  function play(name){
+    const p = pools[name];
+    if(!p) return;
+    const el = p.arr[p.idx];
+    p.idx = (p.idx + 1) % p.arr.length;
+    try{
+      el.currentTime = 0;
+      const pr = el.play();
+      if (pr && typeof pr.catch === 'function') pr.catch(()=>{});
+    }catch(e){}
+  }
+
+  function unlock(){
+    if (unlocked) return;
+    Object.values(pools).forEach(p =>
+      p.arr.forEach(el => {
+        try{
+          el.muted = true;
+          el.play()
+            .then(() => { el.pause(); el.currentTime = 0; el.muted = false; })
+            .catch(()=>{});
+        }catch(e){}
+      })
+    );
+    unlocked = true;
+    document.removeEventListener('pointerdown', unlock);
+  }
+
+  document.addEventListener('pointerdown', unlock, { once: true });
+  return { add, play };
+})();
+
+// Déclare les sons (fournis idéalement en .ogg + .mp3 + .wav)
+Sound.add('spin',    ['spin.wav','spin.mp3','spin.ogg'],         { volume: 1,   pool: 1 });
+Sound.add('cascade', ['cascade.wav','cascade.mp3','cascade.pgg'], { volume: 1.0, pool: 3 });
+
 /* ------------------ config ------------------ */
 const ROWS=5, COLS=6, MIN_CLUSTER=5;
 const BET=1;
@@ -548,7 +613,7 @@ const SYM=[
   {id:'GOC',name:'Golden Cap',src:'golden_cap.png'},
   {id:'FSS',name:'Free Spin',src:'fs.png'}
 ];
-const WEIGHTS=[0.66,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.01,0.04];
+const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.01,0.05];
 const IDX_GOC=SYM.findIndex(s=>s.id==='GOC');
 const IDX_FSS=SYM.findIndex(s=>s.id==='FSS');
 
@@ -694,7 +759,6 @@ function renderGrid(grid, marks=new Set(), markMeta=()=>null, opts={}){
         const oldCell = oldCells[r*COLS+c];
         const tag = oldCell?.querySelector('.tag-bg');
         if(tag){
-          // détache le nœud pour pouvoir le réinsérer sans le recréer
           tag.remove();
           savedTags.set(`${r},${c}`, tag);
         }
@@ -740,7 +804,6 @@ function renderGrid(grid, marks=new Set(), markMeta=()=>null, opts={}){
 
       if(tagMask[r][c]){
         if(preserveTagDOM && savedTags?.has(`${r},${c}`)){
-          // Réutilise l’ancien nœud, aucun effet pop ni fade
           cell.appendChild(savedTags.get(`${r},${c}`));
         }else{
           const tag=document.createElement('div');
@@ -828,7 +891,6 @@ async function dropOutOldGrid(preserveTags=false){
       const cell=cells[idx];
       if(!cell) continue;
 
-      // ⛔ En FS + preserveTags: on NE FAIT RIEN aux tags
       if(!preserveTags){
         const tag=cell.querySelector('.tag-bg');
         if(tag){ tag.classList.add('tag-fade-out'); }
@@ -1159,7 +1221,6 @@ function showFSPopup(fsCount){
 
 /* ------------------ FS STATE ------------------ */
 const fsState = { active:false, total:0, current:0, winTotal:0 };
-// efface les tags au prochain spin si une *Golden Cap* a été vue (corrigé)
 let fsClearTagsNextSpin = false;
 
 function updateFsTracker(){
@@ -1174,7 +1235,6 @@ function startFS(count){
   fsClearTagsNextSpin = false;
   updateFsTracker();
   document.body.classList.add('fs-mode');
-  // on désactive l'auto pendant le bonus
   isAuto = false;
   $autoBtn.classList.remove('active','stopping');
   $autoBtn.textContent = 'Auto Spin';
@@ -1233,14 +1293,12 @@ function showFsRetriggerPopup(extra){
     const end = ()=>{
       overlay.style.display = 'none';
       card.classList.remove('tv-off');
-      // réactive les boutons
       $btn.disabled = false;
       $autoBtn.disabled = false;
       resolve();
     };
 
     const close = ()=>{
-      // lance l'animation et attend la fin, avec un filet de sécurité
       card.classList.add('tv-off');
       const hasAnim = getComputedStyle(card).animationName.includes('tvOff');
       if(hasAnim){
@@ -1251,11 +1309,9 @@ function showFsRetriggerPopup(extra){
       }
     };
 
-    // désactive les boutons pendant la popup
     $btn.disabled = true;
     $autoBtn.disabled = true;
 
-    // clic n'importe où pour fermer
     overlay.addEventListener('mousedown', close, {once:true});
   });
 }
@@ -1280,7 +1336,6 @@ function anyTags(){
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(tagMask[r][c]) return true;
   return false;
 }
-// *** CORRECTION CRITIQUE *** : vérifier la vraie Golden Cap (GOC)
 function gridContainsGOC(grid){
   for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++) if(grid[r][c]==='GOC') return true;
   return false;
@@ -1393,24 +1448,24 @@ async function spin(){
   isSpinning = true;
   fssEffectPlayedThisSpin = false;
   $btn.disabled=true;
-  const $auto=document.getElementById('autoSpinBtn');
+
+  // Son de départ
+  Sound.play('spin');
 
   try{
-    // ⬇️ on préserve les tags visuellement pendant la sortie de l’ancienne grille
+    // Sort l'ancienne grille
     await dropOutOldGrid(preserveTagsThisSpin);
 
     document.getElementById('win').textContent='0.00 $';
     document.getElementById('wins').innerHTML='';
 
-    // -------- FS MODE: tags persistants sauf si une Golden Cap a été vue au spin précédent
     if(fsState.active){
       if(fsClearTagsNextSpin){
-        clearAllTags('animated'); // purge uniquement si une GOC a été vue au spin précédent
+        clearAllTags('animated');
         fsClearTagsNextSpin = false;
       }
       suppressNextTags = false;
     }else{
-      // en jeu normal : on part d'une grille sans tags à chaque nouveau spin
       clearAllTags('animated');
       suppressNextTags = false;
     }
@@ -1418,12 +1473,8 @@ async function spin(){
     if(!fsState.active){ bank-=BET; refreshBank(); }
 
     currentGrid=makeStartGrid();
-    // 🔧 IMPORTANT : on réutilise les nœuds DOM des tags si on doit les figer
     renderGrid(currentGrid,new Set(),initialMark, { preserveTagDOM: preserveTagsThisSpin });
     await wait(FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow*0.75}));
-
-    // ❌ SUPPRIMÉ: pas de trigger FS ici
-    // if(!fsState.active){ await maybePlayFSSEffect(currentGrid); }
 
     let total=0, chain=0;
     let goldenTriggered=false;
@@ -1442,17 +1493,16 @@ async function spin(){
         await wait(tagTime+40);
         suppressNextTags = false;
 
+        // Son de chute juste avant la gravité
+        Sound.play('cascade');
+
         const markFall=applyGravity(currentGrid);
         document.getElementById('wins').innerHTML='';
-        // 🔧 IMPORTANT : préserver les tags pendant les chutes/cascades
         renderGrid(currentGrid,new Set(),markFall, { preserveTagDOM: preserveTagsThisSpin });
         await wait( Math.max(
           LOCAL_FALL_MS + computeFallTime({baseMs:0,colDelay:DELAY.moveCol,rowDelay:DELAY.moveRow}),
           FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow})
         ) + 20 );
-
-        // ❌ SUPPRIMÉ: pas de trigger FS pendant les cascades
-        // if(!fsState.active){ await maybePlayFSSEffect(currentGrid); }
       }
 
       const fired = await runGoldenIfPossible(currentGrid);
@@ -1460,27 +1510,23 @@ async function spin(){
       if(!fired) break;
     }
 
-    // ✅ NOUVEAU: déclenchement tardif du bonus FS, après TOUTES les cascades + Golden
     if(!fsState.active){
-      await maybePlayFSSEffect(currentGrid); // ne fera quelque chose que s’il y a 3/4 FSS
+      await maybePlayFSSEffect(currentGrid);
     }
 
     document.getElementById('win').textContent=total.toFixed(2)+' $';
     if(!fsState.active){ bank+=total; refreshBank(); }
 
-    // ----- FS MODE: cumul + compteur + retriggers + purge conditionnelle
     if(fsState.active){
       fsState.winTotal += total;
       fsState.current ++;
       updateFsTracker();
 
-      /* ---------- RETRIGGERS +2 / +5 ---------- */
       const fssCount = countFSS(currentGrid);
       if (fssCount === 3 || fssCount === 4) {
         const extra = (fssCount === 3 ? 2 : 5);
         fsState.total += extra;
 
-        // Effet visuel rapide sur les FSS restants
         const positions = getFSSPositions(currentGrid);
         const cells = [...$grid.children];
         positions.forEach(([r, c]) => {
@@ -1497,14 +1543,11 @@ async function spin(){
         updateFsTracker();
         await showFsRetriggerPopup(extra);
       }
-      /* ---------------------------------------- */
 
-      // si une Golden Cap est visible après toutes les cascades, purge au prochain spin FS
       if(gridContainsGOC(currentGrid)){
         fsClearTagsNextSpin = true;
       }
     }else{
-      // HORS FS : si AUCUNE Golden Cap n'a déclenché la mécanique, purge immédiate des tags
       if(!goldenTriggered){
         clearAllTags('animated');
       }
@@ -1513,6 +1556,7 @@ async function spin(){
 
     if(isAuto && bank < BET){
       isAuto = false;
+      const $auto=document.getElementById('autoSpinBtn');
       $auto.classList.remove('active','stopping');
       $auto.textContent='Auto Spin';
     }
@@ -1521,7 +1565,6 @@ async function spin(){
     isSpinning = false;
   }
 
-  // ----- Enchaînement automatique des Free Spins
   if(fsState.active){
     if(fsState.current < fsState.total){
       await wait(200);
@@ -1540,7 +1583,8 @@ async function spin(){
 const autoSpinBtn = document.getElementById("autoSpinBtn");
 
 autoSpinBtn.addEventListener("click", async () => {
-  if(bigWinRunning || fsState.active) return; // pas d'auto pendant FS
+
+  if(bigWinRunning || fsState.active) return;
   isAuto = !isAuto;
   if(isAuto){
     autoSpinBtn.classList.add("active");
@@ -1568,8 +1612,10 @@ autoSpinBtn.addEventListener("click", async () => {
 });
 
 document.getElementById('spinBtn').addEventListener('click', spin);
+
+/* NOTE Étape 3 (à brancher plus tard) :
+   import { computeFullRound } from './engine.mjs' et piloter les vagues/FS depuis son JSON,
+   en réutilisant les mêmes fonctions d'animation (renderGrid, showRemovalWithTag, etc.). */
 </script>
 </body>
 </html>
-
-
