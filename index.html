@@ -429,9 +429,120 @@
 
   /* Ajout: fermeture animée de la carte retrigger */
   .fs-retrigger-card.tv-off{ animation: tvOff .5s ease forwards; }
+
+  /* === Startup Gate === */
+.gate-overlay{
+  position: fixed; inset: 0; z-index: 30000;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(2px);
+}
+.gate-card{
+  background:#111a2a;
+  border:4px solid #ffd54a;
+  border-radius:16px;
+  box-shadow:0 22px 70px rgba(0,0,0,.55);
+  max-width: 1200px;
+  padding:50px 40px;
+  color:#fff;
+  text-align:center;
+  font-family:"urban", ui-sans-serif, system-ui;
+  transform:scale(0); opacity:0; animation: gateIn .55s ease forwards;
+}
+
+/* Logo principal */
+.gate-logo{
+  max-width: clamp(160px, 40%, 280px);
+  height: auto;
+  margin: 0 auto 20px;
+  display: block;
+}
+
+/* Logo secondaire (watermark en bas à droite) */
+.gate-logo-sg{
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  max-width: 120px;
+  height: auto;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.gate-card h1{
+  margin:20px 0;
+  font-size: clamp(28px, 5vw, 54px);
+  color:#ffd54a; -webkit-text-stroke:1px #1a1200; letter-spacing:.4px;
+}
+.gate-text{
+  text-align:left;
+  margin: 10px auto 18px;
+  font-size: clamp(16px, 2.4vw, 22px);
+  line-height:1.4;
+  max-width: 640px;
+}
+.gate-text p{ margin: 10px 0; }
+.gate-text strong{ 
+  color:#ffd54a;
+  font-size: 1.05em;
+}
+
+.gate-btn{
+  appearance:none; border:0; cursor:pointer;
+  padding:12px 18px;
+  border-radius:12px;
+  background:linear-gradient(180deg, var(--gold1), var(--gold2));
+  color:#1a1200; font-weight:900; letter-spacing:.6px;
+  box-shadow:0 10px 24px rgba(245,158,11,.35);
+  font-family:"urban", ui-sans-serif, system-ui;
+  font-size: clamp(16px, 2.6vw, 20px);
+}
+.gate-btn:hover{ filter:brightness(1.06) }
+.gate-btn:active{ transform:translateY(1px) }
+
+@keyframes gateIn{
+  0%{ transform:scale(0,.02); opacity:0 }
+  40%{ transform:scale(1.2,.02); opacity:1 }
+  70%{ transform:scale(1.08,1.08) }
+  100%{ transform:scale(1); opacity:1 }
+}
+.gate-hide .gate-card{ animation: tvOff .5s ease forwards; } /* réutilise ton @keyframes tvOff existant */
+
 </style>
 </head>
 <body>
+
+  <!-- === STARTUP GATE (force click before playing) === -->
+<div id="startupGate" class="gate-overlay" role="dialog" aria-modal="true">
+  <div class="gate-card">
+    
+    <!-- Logo principal centré -->
+    <img src="img/logo.png" alt="Logo" class="gate-logo">
+
+    <h1>WELCOME TO THE RED CAP GAME</h1>
+
+    <div class="gate-text">
+      <p><strong>Tag cascades :</strong><br>
+      Winning Positions are marked by tag, the symbols are removed and new symbolds drop in!</p>
+
+      <p><strong>The Red Cap Mechanic:</strong><br>
+      The Kaito's Red Cap grabs a symbol and replaces all Tag positions with it!</p>
+
+      <p><strong>Frees Spin Bonus:</strong><br>
+      Have 3 or 4 Kaito symbol on the board and earn 10 or 12 free spins!</p>
+    </div>
+
+    <button id="gateStartBtn" class="gate-btn" autofocus>CLICK TO START</button>
+
+    <!-- Logo secondaire en bas à droite -->
+    <img src="logo-sg.png" alt="Logo SG" class="gate-logo-sg">
+
+  </div>
+</div>
+
+
+<!-- Musique de fond (muette au départ, dé-mutée au clic) -->
+<audio id="bgm" src="audio/ambiance_loop_test_01.01.wav" muted loop preload="auto" playsinline></audio>
+
 
   <!-- Double background -->
   <div class="bg-wrapper">
@@ -509,7 +620,60 @@
   </div>
 
 <script>
-// ========= AUDIO MANAGER (multi-format + pooling) =========
+/* ===== Background Music (start on gate click with fade-in) ===== */
+const bgm = document.getElementById('bgm');
+bgm.volume = 0; // on fera un fade-in
+
+function fadeVolumeTo(target, durationMs){
+  const start = bgm.volume;
+  const delta = target - start;
+  const t0 = performance.now();
+  function step(t){
+    const p = Math.min(1, (t - t0) / durationMs);
+    bgm.volume = start + delta * p;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+
+// Fade linéaire
+function fadeVolumeTo(target, durationMs){
+  const start = bgm.volume;
+  const delta = target - start;
+  const t0 = performance.now();
+  function step(t){
+    const p = Math.min(1, (t - t0) / durationMs);
+    bgm.volume = start + delta * p;
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+// Débloque audio sur la 1ère interaction si le navigateur refuse l'audible sans geste
+function resumeAndUnmute(){
+  bgm.play().finally(() => {
+    bgm.muted = false;
+    // Lance le fade-in uniquement si on est (encore) à 0
+    if (bgm.volume === 0) fadeVolumeTo(0.6, 500);
+    // On n'a besoin de le faire qu'une fois
+    document.removeEventListener('pointerdown', resumeAndUnmute);
+    document.removeEventListener('keydown', resumeAndUnmute);
+    document.removeEventListener('touchstart', resumeAndUnmute);
+  });
+}
+document.addEventListener('pointerdown', resumeAndUnmute, { once:true });
+document.addEventListener('keydown', resumeAndUnmute, { once:true });
+document.addEventListener('touchstart', resumeAndUnmute, { once:true });
+
+// Si retour d'onglet -> s'assurer que la musique reprend
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && bgm.paused) {
+    bgm.play().catch(()=>{ /* sans geste, iOS peut encore bloquer le son */ });
+  }
+});
+
+/* ========= AUDIO MANAGER (multi-format + pooling) ========= */
 const Sound = (() => {
   const pools = {};
   let unlocked = false;
@@ -570,8 +734,8 @@ const Sound = (() => {
   return { add, play };
 })();
 
-// Déclare les sons (.ogg + .mp3 + .wav)
-Sound.add('spin',    ['audio/spin.wav'],         { volume: 1,   pool: 1 });
+// Déclare les sons (.wav)
+Sound.add('spin',    ['audio/spin.wav'],    { volume: 1,   pool: 1 });
 Sound.add('cascade', ['audio/cascade.wav'], { volume: 1.0, pool: 3 });
 
 /* ------------------ config ------------------ */
@@ -1238,12 +1402,23 @@ function startFS(count){
   isAuto = false;
   $autoBtn.classList.remove('active','stopping');
   $autoBtn.textContent = 'Auto Spin';
+
+  // 🔇 Couper la musique quand le bonus démarre (fade-out)
+  fadeVolumeTo(0, 500);
+  setTimeout(() => bgm.pause(), 600);
 }
+
 function endFS(){
   fsState.active = false;
   document.body.classList.remove('fs-mode');
   document.body.classList.remove('fs-active');
+
+  // 🔊 Relancer la musique quand le bonus est fini (fade-in)
+  bgm.play().catch(()=>{});
+  bgm.muted = false;
+  fadeVolumeTo(0.6, 800);
 }
+
 
 /* ------- POPUP de fin de Free Spins ------- */
 function showFsEndPopup(total, spinsPlayed){
@@ -1613,9 +1788,46 @@ autoSpinBtn.addEventListener("click", async () => {
 
 document.getElementById('spinBtn').addEventListener('click', spin);
 
-/* NOTE Étape 3 (à brancher plus tard) :
-   import { computeFullRound } from './engine.mjs' et piloter les vagues/FS depuis son JSON,
-   en réutilisant les mêmes fonctions d'animation (renderGrid, showRemovalWithTag, etc.). */
+/* ===== Startup Gate Control ===== */
+const gate = document.getElementById('startupGate');
+const gateBtn = document.getElementById('gateStartBtn');
+
+function closeGateAndStartAudio(){
+  // Démarre la musique (un geste utilisateur vient d’avoir lieu, donc autorisé)
+  bgm.muted = false;
+  bgm.play().catch(()=>{});    // au cas où, mais après un clic ça passe
+  fadeVolumeTo(0.6, 600);      // petit fade-in
+
+  // Ferme le popup proprement
+  gate.classList.add('gate-hide');
+  const card = gate.querySelector('.gate-card');
+  const end = ()=>{ gate.remove(); };
+  card.addEventListener('animationend', end, { once:true });
+  setTimeout(end, 700); // fallback
+}
+
+// Clic sur le bouton
+gateBtn.addEventListener('click', closeGateAndStartAudio);
+
+// Clic n'importe où dans l’overlay
+gate.addEventListener('mousedown', (e)=>{
+  // protège contre clics accidentels à l’extérieur du bouton si tu veux :
+  // if(!e.target.closest('.gate-card')) return;
+  // Ici on accepte quand même tout clic :
+  closeGateAndStartAudio();
+});
+
+// Validation clavier (Enter/Espace)
+gate.addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter' || e.key === ' '){
+    e.preventDefault();
+    closeGateAndStartAudio();
+  }
+});
+
+// Donner le focus au bouton au montage
+window.addEventListener('load', ()=>{ gateBtn?.focus(); });
+
 </script>
 </body>
 </html>
