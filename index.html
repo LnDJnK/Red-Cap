@@ -738,6 +738,146 @@ const Sound = (() => {
 Sound.add('spin',    ['audio/spin.wav'],    { volume: 1,   pool: 1 });
 Sound.add('cascade', ['audio/cascade.wav'], { volume: 1.0, pool: 3 });
 
+/* ===== Ambiances aléatoires (hors Free Spins) — PATCH ===== */
+const AMBIENT_CFG = [
+  { src: 'audio/ambiance_klaxon_test_01.01.wav', volume: 0.9 },
+  { src: 'audio/ambiance_police_test_01.01.wav', volume: 0.9 },
+  { src: 'audio/ambiance_voiture_test_01.01.wav', volume: 0.9 }
+];
+
+const ambientPlayers = AMBIENT_CFG.map(cfg => {
+  const a = new Audio(cfg.src);
+  a.preload = 'auto';
+  a.loop = false;
+  a.volume = cfg.volume;
+  a.playsInline = true;              // ✅ crucial sur iOS
+  // a.crossOrigin = 'anonymous';    // ❌ inutile si fichiers même origine; peut compliquer iOS
+  return a;
+});
+// --- Anti-répétition simple pour les ambiances
+let lastAmbient = -1;
+function randomIndexNoRepeat(n){
+  let i = Math.floor(Math.random() * n);
+  if (n > 1 && i === lastAmbient) {
+    i = (i + 1) % n; // prend l'index suivant si même que le précédent
+  }
+  lastAmbient = i;
+  return i;
+}
+
+let ambientTimer = null;
+let ambientPlaying = false;
+
+// Déverrouillage robuste (tap/click/clavier/touch)
+// -> joue / pause en muet pour autoriser des plays futurs audibles
+function unlockAmbients(){
+  ambientPlayers.forEach(a=>{
+    try{
+      a.muted = true;
+      a.play()
+        .then(()=>{ a.pause(); a.currentTime = 0; a.muted = false; })
+        .catch(()=>{ /* ignoré */ });
+    }catch(e){}
+  });
+  // après unlock: programme la première ambiance si on est en mode normal
+  scheduleAmbient();
+}
+
+// On écoute plusieurs types d’interactions pour maximiser les chances sur mobile
+['pointerdown','touchstart','keydown'].forEach(evt=>{
+  document.addEventListener(evt, unlockAmbients, { once:true });
+});
+
+function scheduleAmbient() {
+  if (fsState?.active || document.hidden) return;
+  // Attente aléatoire 8–25s
+  const delay = Math.floor(8000 + Math.random() * 17000);
+  clearTimeout(ambientTimer);
+  ambientTimer = setTimeout(playRandomAmbient, delay);
+}
+
+function playRandomAmbient() {
+  if (fsState?.active || ambientPlaying || document.hidden) return;
+
+ const idx = randomIndexNoRepeat(ambientPlayers.length);
+
+  const a = ambientPlayers[idx];
+  console.log('[Ambient try]', AMBIENT_CFG[idx].src);
+
+  ambientPlaying = true;
+  a.currentTime = 0;
+
+  const onDone = () => {
+    a.removeEventListener('ended', onDone);
+    a.removeEventListener('error', onDone);
+    a.removeEventListener('stalled', onDone);
+    ambientPlaying = false;
+    scheduleAmbient();
+  };
+
+  a.addEventListener('ended', onDone,   { once:true });
+  a.addEventListener('error', onDone,   { once:true });
+  a.addEventListener('stalled', onDone, { once:true });
+
+  a.play()
+    .then(()=> console.log('[Ambient play OK]'))
+    .catch(err => {
+      console.warn('[Ambient play REJECTED]', err?.name || err);
+      ambientPlaying = false;
+      // réessaie plus tard (on relance une planif)
+      scheduleAmbient();
+    });
+}
+
+function stopAmbient() {
+  clearTimeout(ambientTimer);
+  ambientTimer = null;
+  ambientPlaying = false;
+  ambientPlayers.forEach(a => { a.pause(); a.currentTime = 0; });
+}
+
+// Visibilité onglet
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    stopAmbient();
+  } else if (!fsState.active) {
+    scheduleAmbient();
+  }
+});
+
+
+// Stop / redémarre les ambiances selon la visibilité de l'onglet
+function stopAmbient() {
+  clearTimeout(ambientTimer);
+  ambientTimer = null;
+  ambientPlaying = false;
+  ambientPlayers.forEach(a => { a.pause(); a.currentTime = 0; });
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopAmbient();
+  else if (!fsState.active) scheduleAmbient();
+});
+
+// Déverrouillage **sur le clic du gate** (même geste utilisateur)
+function primeAmbientsOnGateClick(){
+  Promise.allSettled(ambientPlayers.map(async a => {
+    try {
+      a.muted = true;
+      await a.play();
+      a.pause();
+      a.currentTime = 0;
+      a.muted = false;
+      console.log('[Ambient primed]');
+    } catch (e) {
+      console.warn('[Ambient prime failed]', e?.name || e);
+    }
+  })).finally(()=>{
+    scheduleAmbient(); // on arme le timer seulement après prime
+  });
+}
+
+
 /* ------------------ config ------------------ */
 const ROWS=5, COLS=6, MIN_CLUSTER=5;
 const BET=1;
@@ -775,9 +915,35 @@ const SYM=[
   {id:'HED',name:'Casque',src:'img/audio.png'},
   {id:'CAP',name:'Red Cap',src:'img/red cap.png',alt:'/img/red-cap.png'},
   {id:'GOC',name:'Golden Cap',src:'img/golden_cap.png'},
-  {id:'FSS',name:'Free Spin',src:'img/fs.png'}
+  {id:'FSS',name:'Free Spin',src:'img/fs.png'},
+    {id:'W',   name:'Wild X1', src:'img/W.png'},
+  {id:'W2',  name:'Wild X2', src:'img/W2.png'},
+  {id:'W3',  name:'Wild X3', src:'img/W3.png'},
+  {id:'W4',  name:'Wild X4', src:'img/W4.png'},
+  {id:'W5',  name:'Wild X5', src:'img/W5.png'},
+  {id:'W6',  name:'Wild X6', src:'img/W6.png'},
+  {id:'W7',  name:'Wild X7', src:'img/W7.png'},
+  {id:'W8',  name:'Wild X8', src:'img/W8.png'},
+  {id:'W9',  name:'Wild X9', src:'img/W9.png'},
+  {id:'W10', name:'Wild X10',src:'img/W10.png'}
+
+
 ];
-const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.01,0.05];
+
+// === Wild helpers ===
+const WILD_MULT = { W:1, W2:2, W3:3, W4:4, W5:5, W6:6, W7:7, W8:8, W9:9, W10:10 };
+
+function isWild(id){
+  return id && (id === 'W' || id in WILD_MULT);
+}
+
+function wildMultOf(id){
+  return isWild(id) ? (WILD_MULT[id] || 1) : 1;
+}
+
+const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.01,0.02,
+               0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01];
+
 const IDX_GOC=SYM.findIndex(s=>s.id==='GOC');
 const IDX_FSS=SYM.findIndex(s=>s.id==='FSS');
 
@@ -1009,15 +1175,97 @@ function flood(grid,sr,sc,id,seen){
   return cells;
 }
 function findAllClusters(grid){
-  const seen=new Set(), clusters=[];
-  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-    const id=grid[r][c]; if(!id) continue;
-    const key=`${r},${c}`; if(seen.has(key)) continue;
-    const cells=flood(grid,r,c,id,seen);
-    if(cells.length>=MIN_CLUSTER) clusters.push({id,cells});
+  const clusters = [];
+  const seenByBase = {}; // baseId -> Set("r,c")
+
+  // Liste des symboles "de base" (exclut Wilds + symboles spéciaux non payants)
+  const baseIds = SYM
+    .map(s => s.id)
+    .filter(id => !isWild(id) && id !== 'FSS' && id !== 'GOC'); // adapte si besoin
+
+  // --- 1) Pour chaque symbole de base, on agrège ce symbole + tous les Wilds adjacents ---
+  for(const baseId of baseIds){
+    const seen = (seenByBase[baseId] ||= new Set());
+    for(let r=0;r<ROWS;r++){
+      for(let c=0;c<COLS;c++){
+        const key = `${r},${c}`;
+        if(seen.has(key)) continue;
+
+        const id0 = grid[r][c];
+        if(id0 !== baseId && !isWild(id0)) continue; // on démarre sur baseId ou Wild
+
+        // BFS limité à baseId OU Wild
+        const st = [[r,c]];
+        const comp = [];
+        let mult = 1; // produit des multiplicateurs des Wilds du cluster
+
+        while(st.length){
+          const [cr,cc] = st.pop();
+          const ck = `${cr},${cc}`;
+          if(seen.has(ck)) continue;
+
+          const cid = grid[cr][cc];
+          if(!(cid === baseId || isWild(cid))) continue;
+
+          seen.add(ck);
+          comp.push([cr,cc]);
+          if(isWild(cid)) mult *= wildMultOf(cid);
+
+          // 4-voisins
+          if(cr+1<ROWS) st.push([cr+1,cc]);
+          if(cr-1>=0)   st.push([cr-1,cc]);
+          if(cc+1<COLS) st.push([cr,cc+1]);
+          if(cc-1>=0)   st.push([cr,cc-1]);
+        }
+
+        if(comp.length >= MIN_CLUSTER){
+          clusters.push({ baseId, cells: comp, mult });
+        }
+      }
+    }
   }
+
+  // --- 2) Clusters 100% Wild (optionnel) ---
+  // Si on veut aussi payer un amas de Wilds isolés, on peut lui attribuer un symbole "par défaut"
+  // Ici on choisit TOK par défaut ; tu peux mettre un autre id si tu préfères (ex: 'CAP').
+  const seenWildOnly = new Set();
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const key = `${r},${c}`;
+      const id0 = grid[r][c];
+      if(!isWild(id0) || seenWildOnly.has(key)) continue;
+
+      // BFS Wilds only
+      const st = [[r,c]];
+      const comp = [];
+      let mult = 1;
+
+      while(st.length){
+        const [cr,cc] = st.pop();
+        const ck = `${cr},${cc}`;
+        if(seenWildOnly.has(ck)) continue;
+        const cid = grid[cr][cc];
+        if(!isWild(cid)) continue;
+
+        seenWildOnly.add(ck);
+        comp.push([cr,cc]);
+        mult *= wildMultOf(cid);
+
+        if(cr+1<ROWS) st.push([cr+1,cc]);
+        if(cr-1>=0)   st.push([cr-1,cc]);
+        if(cc+1<COLS) st.push([cr,cc+1]);
+        if(cc-1>=0)   st.push([cr,cc-1]);
+      }
+
+      if(comp.length >= MIN_CLUSTER){
+        clusters.push({ baseId: 'TOK', cells: comp, mult }); // base par défaut
+      }
+    }
+  }
+
   return clusters;
 }
+
 
 function applyGravity(grid){
   const moved=Array.from({length:ROWS},()=>Array(COLS).fill(0));
@@ -1126,7 +1374,8 @@ function showRemovalWithTag(grid,clusters,placeTags=true){
   let globalStartDelay = Infinity;
 
   clusters.forEach(cl=>{
-    const amount = payFor(cl.id, cl.cells.length);
+    const amount = payFor(cl.baseId || cl.id, cl.cells.length) * (cl.mult || 1);
+
 
     let minDelay = Infinity;
     cl.cells.forEach(([r,c])=>{
@@ -1403,9 +1652,10 @@ function startFS(count){
   $autoBtn.classList.remove('active','stopping');
   $autoBtn.textContent = 'Auto Spin';
 
-  // 🔇 Couper la musique quand le bonus démarre (fade-out)
+  // 🔇 Musique + ambiances OFF
+  stopAmbient();
   fadeVolumeTo(0, 500);
-  setTimeout(() => bgm.pause(), 600);
+  setTimeout(() => bgm.pause(), 520);
 }
 
 function endFS(){
@@ -1413,11 +1663,14 @@ function endFS(){
   document.body.classList.remove('fs-mode');
   document.body.classList.remove('fs-active');
 
-  // 🔊 Relancer la musique quand le bonus est fini (fade-in)
-  bgm.play().catch(()=>{});
+  // 🔊 Musique + ambiances ON
   bgm.muted = false;
+  bgm.play().catch(()=>{});
   fadeVolumeTo(0.6, 800);
+
+  scheduleAmbient();
 }
+
 
 
 /* ------- POPUP de fin de Free Spins ------- */
@@ -1660,7 +1913,10 @@ async function spin(){
         if(clusters.length===0) break;
 
         chain++;
-        let wave=0; clusters.forEach(cl=>wave+=payFor(cl.id,cl.cells.length));
+        let wave=0; clusters.forEach(cl=>{
+  wave += payFor(cl.baseId || cl.id, cl.cells.length) * (cl.mult || 1);
+});
+
         total+=wave;
 
         const placeTags = !suppressNextTags;
@@ -1679,6 +1935,8 @@ async function spin(){
           FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow})
         ) + 20 );
       }
+
+
 
       const fired = await runGoldenIfPossible(currentGrid);
       if(fired) goldenTriggered = true;
@@ -1793,18 +2051,21 @@ const gate = document.getElementById('startupGate');
 const gateBtn = document.getElementById('gateStartBtn');
 
 function closeGateAndStartAudio(){
-  // Démarre la musique (un geste utilisateur vient d’avoir lieu, donc autorisé)
   bgm.muted = false;
-  bgm.play().catch(()=>{});    // au cas où, mais après un clic ça passe
-  fadeVolumeTo(0.6, 600);      // petit fade-in
+  bgm.play().catch(()=>{});
+  fadeVolumeTo(0.6, 600);
 
-  // Ferme le popup proprement
+  // ✅ prime les ambiances sur le même geste
+  unlockAmbients();   // <— AJOUT
+
   gate.classList.add('gate-hide');
   const card = gate.querySelector('.gate-card');
   const end = ()=>{ gate.remove(); };
   card.addEventListener('animationend', end, { once:true });
-  setTimeout(end, 700); // fallback
+  setTimeout(end, 700);
 }
+
+
 
 // Clic sur le bouton
 gateBtn.addEventListener('click', closeGateAndStartAudio);
@@ -1831,7 +2092,6 @@ window.addEventListener('load', ()=>{ gateBtn?.focus(); });
 </script>
 </body>
 </html>
-
 
 
 
