@@ -2431,6 +2431,7 @@
 
       const promises=[];
       let fsSoundPlayed = false;
+
       positions.forEach(([r,c])=>{
         const cell=cells[r*COLS+c];
         if(!cell) return;
@@ -2452,26 +2453,24 @@
               spr.remove();
               grid[r][c]=null;
 
-              if(!fsSoundPLayed){
+              if(!fsSoundPlayed){
                 Sound.play('fs_hit');
-                fsSoundPLayed = true;
+                fsSoundPlayed = true;
               }
 
               const fx = spawnFSSFrontFXAtCell(cell);
               fx.addEventListener('animationend', ()=>{ fx.remove(); res(); }, {once:true});
-            }
-
-            else{
+            }else{
               res();
             }
           };
-
           veil.addEventListener('animationend', endFlash, {once:true});
           setTimeout(endFlash, 1200);
         });
 
         promises.push(p);
       });
+
 
       await Promise.all(promises);
 
@@ -3107,10 +3106,4 @@
     </script>
   </body>
 </html>
-
-
-
-
-
-
 
