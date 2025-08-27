@@ -1570,14 +1570,21 @@
         { src: 'audio/background_sfx_gunfights_6.ogg', volume: VOLUME.AMB }
       ];
 
+      const ctx = getCtx();
+
       const ambientPlayers = AMBIENT_CFG.map(cfg => {
-        const a = new Audio(cfg.src);
-        a.preload = 'auto';
-        a.loop = false;
-        a.volume = cfg.volume;
-        a.playsInline = true;
-        return a;
+        const audio = new Audio(cfg.src);
+        audio.preload = 'auto';
+        audio.loop = false;
+        audio.playsInline = true;
+        const track = ctx.createMediaElementSource(audio);
+        const gain = ctx.createGain();
+        gain.gain.value = cfg.volume * 5;
+        track.connect(gain).connect(ctx.destination);
+
+        return audio;
       });
+
 
       let lastAmbient = -1;
       function randomIndexNoRepeat(n){
@@ -1593,6 +1600,12 @@
       let ambientPlaying = false;
 
       function unlockAmbients(){
+        try {
+          getCtx().resume();
+        }
+
+        catch(e){}
+
         ambientPlayers.forEach(a=>{
           try{
             a.muted = true;
@@ -3076,6 +3089,12 @@
     }
 
     async function closeGateAndStartAudio(){
+      try {
+        await getCtx().resume();
+      }
+
+      catch(e){}
+      
       await startLoop(bgmMusic, VOLUME.MUSIC, 600);
       await startLoop(bgmAmb,   VOLUME.AMB,   600);
 
@@ -3106,4 +3125,5 @@
     </script>
   </body>
 </html>
+
 
