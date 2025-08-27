@@ -32,7 +32,6 @@
     overflow-x:hidden;
   }
 
-  /* ====== DOUBLE BACKGROUND avec slide ====== */
   .bg-wrapper{ position: fixed; inset: 0; z-index: -1; overflow: hidden; }
   .bg-wrapper > div{
     position: absolute; inset: 0;
@@ -71,7 +70,6 @@
     will-change: contents;
   }
 
-  /* ===== Sprites ===== */
   .sprite{
     position: relative; z-index:2; width:90%; height:90%;
     filter:drop-shadow(0 6px 10px rgba(0,0,0,.35));
@@ -235,7 +233,6 @@
     .grid{ padding:10px }
   }
 
-  /* ===== Personnage : glisse et sort complètement ===== */
   .character{
     position: fixed;
     right: clamp(110px, 5vw, 140px);
@@ -249,14 +246,12 @@
   }
   body.fs-active .character{ right: -60vw; opacity: 0; }
 
-  /* ===== Logo : slide vers la droite ===== */
   .logo{
     position: absolute; top:-60px; left:-500px; height:500px; pointer-events:none; z-index:2;
     transition: transform .8s var(--ease); will-change: transform;
   }
   body.fs-active .logo{ transform: translateX(calc(100vw - 500px)); }
 
-  /* ===== FS Red Cap ===== */
   .fsredcap {
     position: fixed;
     left: -400px;
@@ -269,7 +264,6 @@
   }
   body.fs-active .fsredcap { transform: translateX(450px); }
 
-  /* ===== Fenêtre tracker Free Spins ===== */
   .fs-tracker{
     position: fixed;
     right: clamp(10px, 50vw - 460px, 40px);
@@ -304,7 +298,6 @@
   }
   body.fs-mode .fs-tracker{ transform: translateY(0); }
 
-  /* ====== OVERLAY GROS GAINS ====== */
   .bigwin-overlay{
     position:fixed; inset:0; z-index:9999;
     display:none; align-items:center; justify-content:center; flex-direction:column;
@@ -328,7 +321,6 @@
   .bigwin-badge{ width:min(700px, 70vw); height:auto; animation: heartBeat 1.05s ease-in-out infinite; filter: drop-shadow(0 18px 34px rgba(0,0,0,.65)); user-select:none; pointer-events:none; }
   @keyframes heartBeat{ 0%,100%{transform:scale(1)} 46%{transform:scale(1.08)} }
 
-  /* === Effets FSS (apparition & retrigger) === */
   .fss-veil{
     position:absolute; inset:0; border-radius:12px;
     background: rgba(255,255,255,.75); mix-blend-mode:screen;
@@ -355,7 +347,6 @@
     100%{ transform:translate(-50%,-50%) scale(8); opacity:0 }
   }
 
-  /* ===== POPUP FREE SPINS (entrée) ===== */
   .fs-popup{
     position:fixed; inset:0; background: rgba(0,0,0,.85);
     display:none; align-items:center; justify-content:center; z-index:20000; cursor:pointer;
@@ -387,7 +378,6 @@
   }
   .fs-popup-content.tv-off{ animation: tvOff .5s ease forwards; }
 
-  /* ===== POPUP FIN DES FREE SPINS ===== */
   .fs-end { position: fixed; inset: 0; z-index: 30000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.85); cursor: pointer; }
   .fs-end-content{
     background:#111a2a; border:4px solid #ffd54a; border-radius:16px;
@@ -404,7 +394,6 @@
   .fs-end-hint{ display:block; margin-top:6px; font-size: clamp(12px,1.8vw,14px); opacity:.85; }
   .fs-end-content.tv-off{ animation: tvOff .5s ease forwards; }
 
-  /* ===== POPUP RETRIGGER (+2 / +5) ===== */
   .fs-retrigger{
     position:fixed; inset:0; z-index:25000;
     display:none; align-items:center; justify-content:center;
@@ -427,10 +416,8 @@
   }
   .fs-retrigger small{ display:block; margin-top:10px; opacity:.9; }
 
-  /* Ajout: fermeture animée de la carte retrigger */
   .fs-retrigger-card.tv-off{ animation: tvOff .5s ease forwards; }
 
-  /* === Startup Gate === */
 .gate-overlay{
   position: fixed; inset: 0; z-index: 30000;
   display: flex; align-items: center; justify-content: center;
@@ -450,7 +437,6 @@
   transform:scale(0); opacity:0; animation: gateIn .55s ease forwards;
 }
 
-/* Logo principal */
 .gate-logo{
   max-width: clamp(160px, 40%, 280px);
   height: auto;
@@ -458,7 +444,6 @@
   display: block;
 }
 
-/* Logo secondaire (watermark en bas à droite) */
 .gate-logo-sg{
   position: absolute;
   right: 20px;
@@ -481,23 +466,17 @@
   max-width: 640px;
 }
 
-/* === POPUP : plus grande === */
 .gate-card{
-  /* avant: max-width: 1200px; padding:50px 40px; */
   max-width: min(86vw, 1400px);
   padding: 64px 56px;
 }
 
-/* Titre plus gros */
 .gate-card h1{
-  /* avant: clamp(28px, 5vw, 54px) */
   font-size: clamp(36px, 5.2vw, 72px);
   margin: 10px 0 28px;
 }
 
-/* === Grille 3 colonnes bien larges (effet colonne) === */
 .gate-features{
-  /* avant: max-width: 980px; gap: 22px; */
   max-width: min(90vw, 1200px);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -506,30 +485,25 @@
   margin: 24px auto 10px;
 }
 
-/* Chaque “colonne” : icône au-dessus, texte dessous */
 .feature{
   display: flex;
   flex-direction: column;
-  align-items: center;  /* on centre de base */
+  align-items: center;  
   text-align: center;
   gap: 14px;
 }
 
-/* On rétablit l’alignement demandé gauche/centre/droite */
 .feature-left  { align-items: flex-start; text-align: left;  }
 .feature-center{ align-items: center;     text-align: center;}
 .feature-right { align-items: flex-end;   text-align: right; }
 
-/* Icônes plus grandes (et responsive) */
 .feature-icon img{
-  /* avant: max-height: 96px */
   max-height: clamp(110px, 14vh, 170px);
   width: auto;
   object-fit: contain;
   display: block;
 }
 
-/* Superposition case + golden cap ajustée avec la nouvelle taille */
 .sym-case     { max-height: clamp(110px, 14vh, 170px); width:auto; display:block; }
 .sym-golden{
   position:absolute; top:50%; left:50%;
@@ -538,7 +512,6 @@
   pointer-events:none;
 }
 
-/* Texte plus lisible et équilibré entre colonnes */
 .feature-text{
   font-size: clamp(16px, 1.6vw, 24px);
   line-height: 1.35;
@@ -549,21 +522,17 @@
   letter-spacing: .3px;
 }
 
-/* Bouton plus visible */
 .gate-btn{
-  /* avant: font-size clamp(16px, 2.6vw, 20px) */
   font-size: clamp(18px, 2.4vw, 24px);
   padding: 14px 22px;
   margin-top: 20px;
 }
 
-/* Logo SG un peu plus grand pour équilibrer */
 .gate-logo-sg{
   max-width: 50px;  /* avant: 120px */
   opacity: .9;
 }
 
-/* Mobile : on empile les colonnes et on garde de grosses icônes */
 @media (max-width: 720px){
   .gate-card{ padding: 40px 22px; }
   .gate-features{
@@ -583,7 +552,6 @@
   color:#ffd54a;
   font-size: 1.05em;
 }
-/* ===== Features avec icônes au-dessus du texte ===== */
 .gate-features{
   display:grid;
   grid-template-columns: 1fr 1fr 1fr;
@@ -610,7 +578,6 @@
   display:block;
 }
 
-/* Superposition case + golden cap */
 .sym-case-wrap{ position:relative; display:inline-block; }
 .sym-case     { max-height:96px; width:auto; display:block; }
 .sym-golden{
@@ -621,7 +588,6 @@
   pointer-events:none;
 }
 
-/* Responsive : on empile en colonne sur mobile */
 @media (max-width: 720px){
   .gate-features{
     grid-template-columns: 1fr;
@@ -648,7 +614,6 @@
 .gate-btn:hover{ filter:brightness(1.06) }
 .gate-btn:active{ transform:translateY(1px) }
 
-/* --- Nouveaux symboles dans la popup --- */
 .gate-symbols{
   display: flex;
   justify-content: center;
@@ -689,21 +654,16 @@
   70%{ transform:scale(1.08,1.08) }
   100%{ transform:scale(1); opacity:1 }
 }
-.gate-hide .gate-card{ animation: tvOff .5s ease forwards; } /* réutilise ton @keyframes tvOff existant */
+.gate-hide .gate-card{ animation: tvOff .5s ease forwards; } 
 
 </style>
 </head>
 <body>
 
-  <!-- === STARTUP GATE (force click before playing) === -->
 <div id="startupGate" class="gate-overlay" role="dialog" aria-modal="true">
   <div class="gate-card">
     <h1>WELCOME TO THE RED CAP GAME</h1>
-    <!-- Logo principal centré -->
-    <!-- Ensemble de symboles -->
-<!-- 3 features alignées : gauche / centre / droite -->
 <div class="gate-features">
-  <!-- GAUCHE : TAG -->
   <div class="feature feature-left">
     <div class="feature-icon">
       <img src="img/tag.png" alt="Tag">
@@ -714,7 +674,6 @@
     </p>
   </div>
 
-  <!-- CENTRE : CASE + GOLDEN CAP superposés -->
   <div class="feature feature-center">
     <div class="feature-icon">
       <div class="sym-case-wrap">
@@ -728,7 +687,6 @@
     </p>
   </div>
 
-  <!-- DROITE : FREE SPINS -->
   <div class="feature feature-right">
     <div class="feature-icon">
       <img src="img/fs.png" alt="Free Spins">
@@ -743,19 +701,16 @@
 
     <button id="gateStartBtn" class="gate-btn" autofocus>CLICK TO START</button>
 
-    <!-- Logo secondaire en bas à droite -->
     <img src="logo-sg.png" alt="Logo SG" class="gate-logo-sg">
 
   </div>
 </div>
 
 
-<!-- Musique de fond (muette au départ, dé-mutée au clic) -->
 <audio id="bgmMusic" src="audio/musique.ogg" muted loop preload="auto" playsinline></audio>
 <audio id="bgmAmb" src="audio/ambient_loop.ogg" muted loop preload="auto" playsinline></audio>
 
 
-  <!-- Double background -->
   <div class="bg-wrapper">
     <div class="bg-playing"></div>
     <div class="bg-fs"></div>
@@ -771,11 +726,9 @@
       <div id="legend" style="display:none"></div>
     </div>
 
-    <!-- Logo qui glisse à droite -->
     <img src="img/logo.png" alt="Logo" class="logo">
   </div>
 
-  <!-- Personnage qui sort par la droite -->
   <img src="img/character.png" alt="Character" class="character">
 
   <div class="controls">
@@ -786,7 +739,6 @@
     <button id="spinBtn" class="btn">Spin</button>
   </div>
 
-  <!-- Fenêtre Free Spins (tracker) -->
   <div class="fs-tracker" id="fsTracker" aria-hidden="true">
     <h3>FREE SPINS</h3>
     <div class="row">
@@ -795,7 +747,6 @@
     </div>
   </div>
 
-  <!-- POP-UP FIN DES FREE SPINS -->
   <div id="fsEnd" class="fs-end" aria-hidden="true">
     <div class="fs-end-content">
       <h1>TOTAL WIN</h1>
@@ -805,13 +756,11 @@
     </div>
   </div>
 
-  <!-- Overlay gros gains -->
   <div id="bigwin" class="bigwin-overlay" aria-hidden="true">
     <div id="bigwinAmount" class="bigwin-amount">0.00 $</div>
     <img id="bigwinBadge" class="bigwin-badge" src="" alt="" style="display:none">
   </div>
 
-  <!-- POP-UP FREE SPINS (entrée bonus) -->
   <div id="fsPopup" class="fs-popup" aria-hidden="true">
     <div class="fs-popup-content">
       <img src="img/fs.png" alt="FS">
@@ -821,7 +770,6 @@
     </div>
   </div>
 
-  <!-- POP-UP RETRIGGER (+2 / +5 pendant FS) -->
   <div id="fsRetrigger" class="fs-retrigger" aria-hidden="true">
     <div class="fs-retrigger-card">
       <h2 id="fsRetriggerTitle" class="fs-retrigger-title">RE-TRIGGER!</h2>
@@ -832,11 +780,187 @@
 
 <script>
   const VOLUME = {
-  MUSIC: 0.12,   // volume musique de fond (mets 0.10–0.25 si tu veux très doux)
-  SFX:   0.35,   // effets (spin, cascade)
-  AMB:   0.28    // ambiances aléatoires
+  MUSIC: 0.12, 
+  SFX:   0.35,  
+  AMB:   0.38  
+
+let audioCtx = null;
+function getCtx(){
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+class GaplessLoop {
+  constructor(urls, { volume=1, loopStart=0, loopEnd=null } = {}){
+    this.urls = Array.isArray(urls) ? urls : [urls];
+    this.url = this.pickSupported(this.urls);  
+    this.buffer = null;
+    this.src = null;
+    this.gain = null;
+    this.loopStart = loopStart;
+    this.loopEnd   = loopEnd;
+    this.volume = volume;
+    this.loaded = false;
+    this.loading = null;
+
+    this.html = null;
+    this.fallbackMode = false;
+  }
+
+  pickSupported(urls){
+    const a = document.createElement('audio');
+    for (const u of urls){
+      const type =
+        u.endsWith('.mp3') ? 'audio/mpeg' :
+        u.endsWith('.ogg') ? 'audio/ogg'  :
+        '';
+      if (!type || a.canPlayType(type)) return u;
+    }
+    return urls[0]; // au pire
+  }
+
+  async load(){
+    if (this.loaded || this.loading) return this.loading || true;
+    const ctx = getCtx();
+    this.loading = (async () => {
+      try{
+        const r = await fetch(this.url, { cache: 'force-cache' });
+        if (!r.ok) throw new Error(`HTTP ${r.status} on ${this.url}`);
+        const ab = await r.arrayBuffer();
+        const buf = await new Promise((res, rej)=>{
+          ctx.decodeAudioData(ab, b => res(b), e => rej(e));
+        });
+        this.buffer = buf;
+        if (this.loopEnd == null) this.loopEnd = buf.duration;
+        this.loaded = true;
+        console.log('[GaplessLoop] decoded OK:', this.url, 'duration=', buf.duration.toFixed(3));
+      }catch(err){
+        console.warn('[GaplessLoop] decode FAILED, will fallback:', this.url, err);
+        this.fallbackMode = true;
+        this.html = new Audio(this.url);
+        this.html.preload = 'auto';
+        this.html.loop = true;
+        this.html.volume = this.volume;
+        this.html.playsInline = true;
+        await new Promise(r => {
+          const oncan = () => { this.loaded = true; this.html.removeEventListener('canplay', oncan); r(true); };
+          this.html.addEventListener('canplay', oncan);
+          this.html.load();
+        });
+      }
+    })();
+    return this.loading;
+  }
+
+  async play(){
+    await this.load();
+    const ctx = getCtx();
+    try { await ctx.resume(); } catch(e){}
+
+    if (this.fallbackMode){
+      try{
+        this.html.currentTime = this.loopStart || 0;
+        await this.html.play();
+      }catch(e){}
+      this.html.volume = this.volume;
+      return;
+    }
+
+    if (this.src) { try{ this.src.stop(0); }catch(_){} try{ this.src.disconnect(); }catch(_){} this.src = null; }
+    if (!this.gain){
+      this.gain = ctx.createGain();
+      this.gain.gain.setValueAtTime(0, ctx.currentTime);
+      this.gain.connect(ctx.destination);
+    }
+
+    const src = ctx.createBufferSource();
+    src.buffer = this.buffer;
+    src.loop = true;
+    src.loopStart = this.loopStart;
+    src.loopEnd   = this.loopEnd;
+    src.connect(this.gain);
+    src.start(0, this.loopStart);
+    this.src = src;
+
+    const now = ctx.currentTime;
+    this.gain.gain.cancelScheduledValues(now);
+    this.gain.gain.setValueAtTime(0, now);
+    this.gain.gain.linearRampToValueAtTime(this.volume, now + 0.04);
+  }
+
+  stop(){
+    if (this.fallbackMode){
+      try{ this.html.pause(); }catch(e){}
+      return;
+    }
+    try{ this.src?.stop(0); }catch(e){}
+    try{ this.src?.disconnect(); }catch(e){}
+    this.src = null;
+  }
+
+  setVolume(v, fadeMs = 0){
+  this.volume = v;
+
+  if (this.fallbackMode){
+    if (this.html) this.html.volume = v;
+    return;
+  }
+
+  const ctx = getCtx();
+  if (!this.gain) return;
+
+  const now = ctx.currentTime;
+  this.gain.gain.cancelScheduledValues(now);
+
+  if (fadeMs > 0){
+    this.gain.gain.setValueAtTime(this.gain.gain.value, now);
+    this.gain.gain.linearRampToValueAtTime(v, now + fadeMs/1000);
+  } else {
+    this.gain.gain.setValueAtTime(v, now);
+  }
+}
+
+}
+
+
+
+const amountSfx = {
+  start: new Audio('audio/amount_start.ogg'),
+  loop : new GaplessLoop(
+  ['audio/amount_loop.ogg','audio/amount_loop.mp3'],
+  { volume: VOLUME.SFX, loopStart: 0, loopEnd: null }
+),
+
+  end  : new Audio('audio/amount_end.ogg'),
+  primed: false
 };
-/* ===== Background Music (start on gate click with fade-in) ===== */
+[amountSfx.start, amountSfx.end].forEach(a=>{
+  a.preload = 'auto';
+  a.volume  = VOLUME.SFX;
+  a.playsInline = true;
+});
+function quickAudioDiag(){
+  const a = document.createElement('audio');
+  console.log('[diag] canPlayType ogg:', a.canPlayType('audio/ogg'));
+  console.log('[diag] canPlayType mp3:', a.canPlayType('audio/mpeg'));
+}
+
+function primeAmountSfx(){
+
+  if (amountSfx.primed) return;
+  try { getCtx().resume(); } catch(e){}
+  Promise.allSettled([
+    (async()=>{ amountSfx.start.muted=true; await amountSfx.start.play().catch(()=>{}); amountSfx.start.pause(); amountSfx.start.currentTime=0; amountSfx.start.muted=false; })(),
+    (async()=>{ amountSfx.end.muted=true;   await amountSfx.end.play().catch(()=>{});   amountSfx.end.pause();   amountSfx.end.currentTime=0;   amountSfx.end.muted=false;   })(),
+    amountSfx.loop.load()
+  ]).finally(()=>{ amountSfx.primed = true; });
+}
+['pointerdown','touchstart','keydown'].forEach(evt=>{
+  document.addEventListener(evt, primeAmountSfx, { once:true });
+});
+
+
+
 const bgmMusic = document.getElementById('bgmMusic');
 const bgmAmb   = document.getElementById('bgmAmb');
 
@@ -875,8 +999,6 @@ function ensurePlay(el){
   }
 }
 
-
-// Débloque audio sur la 1ère interaction si le navigateur refuse l'audible sans geste
 function resumeAndUnmute(){
   Promise.allSettled([
     bgmMusic.play().then(()=>{ bgmMusic.pause(); }),
@@ -891,18 +1013,14 @@ function resumeAndUnmute(){
 }
 
 
-// Si retour d'onglet -> s'assurer que la musique reprend
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden){
-    // Reprend l’ambiance quoi qu’il arrive
     ensurePlay(bgmAmb);
 
-    // La musique principale seulement hors FS
     if (!fsState.active){ ensurePlay(bgmMusic); }
   }
 });
 
-/* ========= AUDIO MANAGER (multi-format + pooling) ========= */
 const Sound = (() => {
   const pools = {};
   let unlocked = false;
@@ -916,7 +1034,7 @@ const Sound = (() => {
         'audio/wav';
       if (a.canPlayType(type)) return u;
     }
-    return urls[0]; // fallback
+    return urls[0];
   }
 
   function add(name, urls, { volume=1, pool=3 } = {}){
@@ -963,32 +1081,38 @@ const Sound = (() => {
   return { add, play };
 })();
 
-// Déclare les sons (.ogg)
 Sound.add('spin',    ['audio/spin.ogg'],    { volume: VOLUME.SFX, pool: 1 });
+Sound.add('click', ['audio/click.ogg'], { volume: VOLUME.SFX, pool: 2 });
 Sound.add('cascade', ['audio/cascade.ogg'], { volume: VOLUME.SFX, pool: 3 });
+Sound.add('cluster',        ['audio/cluster.ogg'],        { volume: VOLUME.SFX, pool: 3 });
+Sound.add('cluster_goc',    ['audio/cluster_goc.ogg'],    { volume: VOLUME.SFX, pool: 3 });
+Sound.add('cluster_wild',   ['audio/cluster_wild.ogg'],   { volume: VOLUME.SFX, pool: 3 });
+Sound.add('cluster_wildX',  ['audio/cluster_wildX.ogg'],  { volume: VOLUME.SFX, pool: 3 });
 
-/* ===== Ambiances aléatoires (hors Free Spins) — PATCH ===== */
+
 const AMBIENT_CFG = [
   { src: 'audio/background_sfx_gunfights_1.ogg', volume: VOLUME.AMB },
+  { src: 'audio/background_sfx_gunfights_2.ogg', volume: VOLUME.AMB },
   { src: 'audio/background_sfx_gunfights_3.ogg', volume: VOLUME.AMB },
-  { src: 'audio/background_sfx_gunfights_5.ogg', volume: VOLUME.AMB }
-];
+  { src: 'audio/background_sfx_gunfights_4.ogg', volume: VOLUME.AMB },
+  { src: 'audio/background_sfx_gunfights_5.ogg', volume: VOLUME.AMB },
+  { src: 'audio/background_sfx_gunfights_6.ogg', volume: VOLUME.AMB }
+  ];
 
 const ambientPlayers = AMBIENT_CFG.map(cfg => {
   const a = new Audio(cfg.src);
   a.preload = 'auto';
   a.loop = false;
   a.volume = cfg.volume;
-  a.playsInline = true;              // ✅ crucial sur iOS
-  // a.crossOrigin = 'anonymous';    // ❌ inutile si fichiers même origine; peut compliquer iOS
+  a.playsInline = true;             
+  // a.crossOrigin = 'anonymous';   
   return a;
 });
-// --- Anti-répétition simple pour les ambiances
 let lastAmbient = -1;
 function randomIndexNoRepeat(n){
   let i = Math.floor(Math.random() * n);
   if (n > 1 && i === lastAmbient) {
-    i = (i + 1) % n; // prend l'index suivant si même que le précédent
+    i = (i + 1) % n; 
   }
   lastAmbient = i;
   return i;
@@ -997,8 +1121,6 @@ function randomIndexNoRepeat(n){
 let ambientTimer = null;
 let ambientPlaying = false;
 
-// Déverrouillage robuste (tap/click/clavier/touch)
-// -> joue / pause en muet pour autoriser des plays futurs audibles
 function unlockAmbients(){
   ambientPlayers.forEach(a=>{
     try{
@@ -1008,11 +1130,9 @@ function unlockAmbients(){
         .catch(()=>{ /* ignoré */ });
     }catch(e){}
   });
-  // après unlock: programme la première ambiance si on est en mode normal
   scheduleAmbient();
 }
 
-// On écoute plusieurs types d’interactions pour maximiser les chances sur mobile
 ['pointerdown','touchstart','keydown'].forEach(evt=>{
   document.addEventListener(evt, unlockAmbients, { once:true });
 });
@@ -1053,7 +1173,6 @@ function playRandomAmbient() {
     .catch(err => {
       console.warn('[Ambient play REJECTED]', err?.name || err);
       ambientPlaying = false;
-      // réessaie plus tard (on relance une planif)
       scheduleAmbient();
     });
 }
@@ -1065,18 +1184,14 @@ function stopAmbient() {
   ambientPlayers.forEach(a => { a.pause(); a.currentTime = 0; });
 }
 
-// Visibilité onglet
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden){
-    // Reprend l’ambiance quoi qu’il arrive
     ensurePlay(bgmAmb);
 
-    // La musique principale seulement hors FS
     if (!fsState.active){ ensurePlay(bgmMusic); }
   }
 });
 
-// Déverrouillage **sur le clic du gate** (même geste utilisateur)
 function primeAmbientsOnGateClick(){
   Promise.allSettled(ambientPlayers.map(async a => {
     try {
@@ -1090,17 +1205,15 @@ function primeAmbientsOnGateClick(){
       console.warn('[Ambient prime failed]', e?.name || e);
     }
   })).finally(()=>{
-    scheduleAmbient(); // on arme le timer seulement après prime
+    scheduleAmbient();
   });
 }
 
 
-/* ------------------ config ------------------ */
 const ROWS=5, COLS=6, MIN_CLUSTER=5;
 const BET=1;
 const TAG_IMG='img/tag.png';
 
-/* Vitesses / délais */
 const DELAY = { newCol:0.035, newRow:0.08, moveCol:0.0, moveRow:0.0 };
 const initialMark = (r,c)=>({ isNew:true, dist:0, fromTop:true });
 
@@ -1113,13 +1226,11 @@ function computeFallTime({baseMs, colDelay, rowDelay}){
   return baseMs + Math.round(maxDelaySec*1000);
 }
 
-/* banque */
 let bank=10000;
 const $bank=document.getElementById('bank');
 function fmt(n){ return n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function refreshBank(){ $bank.textContent=fmt(bank)+' $'; }
 
-/* symboles */
 const SYM=[
   {id:'TOK',name:'Jeton',src:'img/token.png'},
   {id:'BAN',name:'Bandana',src:'img/bandana.png'},
@@ -1130,7 +1241,7 @@ const SYM=[
   {id:'SUN',name:'Sunglasses',src:'img/sunglasses.png'},
   {id:'SK8',name:'Skate',src:'img/skate.png'},
   {id:'HED',name:'Casque',src:'img/audio.png'},
-  {id:'CAP',name:'Red Cap',src:'img/red cap.png',alt:'/img/red-cap.png'},
+  {id:'CAP',name:'Red Cap',src:'img/red%20cap.png',alt:'/img/red-cap.png'},
   {id:'GOC',name:'Golden Cap',src:'img/golden_cap.png'},
   {id:'FSS',name:'Free Spin',src:'img/fs.png'},
     {id:'W',   name:'Wild X1', src:'img/W.png'},
@@ -1147,7 +1258,6 @@ const SYM=[
 
 ];
 
-// === WILD helpers (substitution + multipliers) ===
 const WILD_MULT_SUM = { W:0, W2:2, W3:3, W4:4, W5:5, W6:6, W7:7, W8:8, W9:9, W10:10 };
 
 function isWild(id){
@@ -1183,7 +1293,6 @@ function countFSS(grid){
 function randSymForGrid(grid){
   const w = WEIGHTS.slice();
 
-  // 1 Golden Cap max
   let alreadyHasGOC = false;
   for(let r=0;r<ROWS;r++){
     for(let c=0;c<COLS;c++){
@@ -1193,7 +1302,6 @@ function randSymForGrid(grid){
   }
   if(alreadyHasGOC) w[IDX_GOC] = 0;
 
-  // max 4 FSS visibles
   const fssCount = countFSS(grid);
   if(fssCount >= 4) w[IDX_FSS] = 0;
 
@@ -1203,11 +1311,9 @@ function randSymForGrid(grid){
   return SYM[SYM.length-1].id;
 }
 
-/* tags */
 let tagMask=Array.from({length:ROWS},()=>Array(COLS).fill(false));
 let justTagged=new Set();
 
-/* barèmes (abrégé) */
 const PAY={
   BAG:[{min:26,val:100},{min:13,val:15},{min:11,val:5},{min:9,val:1.5},{min:8,val:0.5},{min:7,val:0.3},{min:6,val:0.2},{min:5,val:0.1}],
   CAN:[{min:26,val:100},{min:13,val:15},{min:11,val:5},{min:9,val:1.5},{min:8,val:0.5},{min:7,val:0.3},{min:6,val:0.2},{min:5,val:0.1}],
@@ -1233,14 +1339,12 @@ const PAY={
 };
 function payFor(id,n){ const t=PAY[id]; if(!t) return 0; let best=0; for(const r of t) if(n>=r.min && r.val>best) best=r.val; return best*BET; }
 
-/* DOM helpers & rendu */
 const $grid=document.getElementById('grid');
 const $winsLayer=document.getElementById('wins');
 const $win=document.getElementById('win');
 const $btn=document.getElementById('spinBtn');
 const $autoBtn=document.getElementById('autoSpinBtn');
 
-/* FS tracker UI */
 const $fsCounter=document.getElementById('fsCounter');
 const $fsAccWin=document.getElementById('fsAccWin');
 
@@ -1305,11 +1409,9 @@ function showClusterWin(amount, cells){
   setTimeout(()=>{ el.remove(); }, 3600);
 }
 
-/* ---------- Rendu de la grille ---------- */
 function renderGrid(grid, marks=new Set(), markMeta=()=>null, opts={}){
   const { preserveTagDOM=false } = opts;
 
-  // Sauvegarde des tags existants (DOM) si demandé
   let savedTags = null;
   if(preserveTagDOM){
     savedTags = new Map();
@@ -1379,8 +1481,6 @@ function renderGrid(grid, marks=new Set(), markMeta=()=>null, opts={}){
   }
 }
 
-
-/* ===== Construction de grille ===== */
 function makeStartGrid(){
   const grid = Array.from({length:ROWS},()=>Array(COLS).fill(null));
   for(let r=0;r<ROWS;r++){
@@ -1404,27 +1504,22 @@ function flood(grid,sr,sc,id,seen){
   }
   return cells;
 }
-// ===== Clusters avec Wilds (substitution + wild-only) =====
 function findAllClusters(grid){
   const clusters = [];
   const ROWS_N = ROWS, COLS_N = COLS;
 
-  // Les symboles "payants" autorisés comme base (exclut FSS/GOC s'ils ne sont pas dans PAY)
   const PAYABLE = new Set(Object.keys(PAY));
 
-  // Visités par (r,c,baseId) pour éviter de fusionner des bases différentes via des wilds
   const seenForBase = new Set();
 
-  // --- Pass A: pour chaque base "normale", cluster = {base OU wild} contigus ---
   for (let r=0; r<ROWS_N; r++){
     for (let c=0; c<COLS_N; c++){
       const baseId = grid[r][c];
-      if (!PAYABLE.has(baseId)) continue; // saute FSS/GOC/vides/etc.
+      if (!PAYABLE.has(baseId)) continue; 
 
       const key0 = `${r},${c},${baseId}`;
       if (seenForBase.has(key0)) continue;
 
-      // BFS: accepte (même base) OU (wild)
       const q = [[r,c]];
       const cells = [];
       let multSum = 0;
@@ -1441,7 +1536,6 @@ function findAllClusters(grid){
           const nr = cr+dr, nc = cc+dc;
           if (nr<0 || nr>=ROWS_N || nc<0 || nc>=COLS_N) continue;
           const nid = grid[nr][nc];
-          // admissible si c'est la même base, ou un wild
           if (nid === baseId || isWild(nid)){
             const k = `${nr},${nc},${baseId}`;
             if (!seenForBase.has(k)){
@@ -1458,8 +1552,6 @@ function findAllClusters(grid){
     }
   }
 
-  // --- Pass B: clusters "wild-only" (aucune base) ---
-  // Ils paient aussi, avec une base de calcul "TOK" (change facilement ici si nécessaire).
   const seenWildOnly = new Set();
   for (let r=0; r<ROWS_N; r++){
     for (let c=0; c<COLS_N; c++){
@@ -1495,13 +1587,33 @@ function findAllClusters(grid){
       }
 
       if (cells.length >= MIN_CLUSTER){
-        // Base de calcul pour wild-only: "TOK" (à ajuster si tu veux une autre base)
         clusters.push({ id: 'TOK', cells, multSum });
       }
     }
   }
 
   return clusters;
+}
+
+function pickClusterSfxName(clusters, grid){
+  let hasWildX = false, hasWild = false, hasGolden = false;
+
+  for (const cl of clusters){
+    for (const [r,c] of cl.cells){
+      const id = grid[r]?.[c];
+      if (!id) continue;
+      if (id === 'GOC') hasGolden = true;
+      if (id[0] === 'W'){
+        if (id !== 'W') hasWildX = true;
+        else hasWild = true;
+      }
+    }
+  }
+
+  if (hasWildX)   return 'cluster_wildX';
+  if (hasWild)    return 'cluster_wild';
+  if (hasGolden)  return 'cluster_goc';
+  return 'cluster';
 }
 
 
@@ -1529,7 +1641,6 @@ function applyGravity(grid){
 
 function wait(ms){ return new Promise(res=>setTimeout(res,ms)); }
 
-/* Sort la grille actuelle vers le bas avant un nouveau spin */
 async function dropOutOldGrid(preserveTags=false){
   const cells=[...$grid.children];
   if(!cells.length) return 0;
@@ -1560,7 +1671,6 @@ async function dropOutOldGrid(preserveTags=false){
 }
 
 
-/* Focus visuel sur HIT */
 function applyHitPresentation(hitSet, on){
   const cells=[...$grid.children];
   for(let r=0;r<ROWS;r++){
@@ -1599,6 +1709,8 @@ function applyHitPresentation(hitSet, on){
   }
 }
 
+
+
 function showRemovalWithTag(grid,clusters,placeTags=true){
   const $winsLayer=document.getElementById('wins');
   $winsLayer.innerHTML='';
@@ -1625,7 +1737,6 @@ function showRemovalWithTag(grid,clusters,placeTags=true){
 
     setTimeout(()=>showClusterWin(amount, cl.cells), Math.max(0, minDelay));
 
-    // --- animation de retrait + pose des tags
     cl.cells.forEach(([r,c])=>{
       const idx   = r*COLS + c;
       const cell  = cells[idx];
@@ -1661,7 +1772,6 @@ function showRemovalWithTag(grid,clusters,placeTags=true){
       }
     });
 
-    // --- suppression logique dans la grille (wilds inclus)
     cl.cells.forEach(([r,c]) => {
       grid[r][c] = null;
     });
@@ -1677,7 +1787,6 @@ function showRemovalWithTag(grid,clusters,placeTags=true){
 }
 
 
-/* ==== GOLDEN CAP mechanic ==== */
 let suppressNextTags = false;
 
 async function runGoldenIfPossible(currentGrid){
@@ -1728,7 +1837,6 @@ async function runGoldenIfPossible(currentGrid){
 
   const idHere = currentGrid[r][c];
 
-  // ⬇️ NEW: ne remplace pas FSS, et ne remplace pas un WILD si la case est taguée
   if (idHere === 'FSS') continue;
   if (tagMask[r][c] && isWild(idHere)) continue;
 
@@ -1758,7 +1866,6 @@ async function runGoldenIfPossible(currentGrid){
   }
 
   await wait(560);
-  // La mécanique GOC consomme les tags immédiatement
   clearAllTags('immediate');
   renderGrid(currentGrid,new Set(),()=>null);
 
@@ -1766,7 +1873,6 @@ async function runGoldenIfPossible(currentGrid){
   return true;
 }
 
-/* ------------------ FSS + POPUP D'ENTRÉE ------------------ */
 let fssEffectPlayedThisSpin = false;
 
 function getFSSPositions(grid){
@@ -1868,7 +1974,6 @@ async function maybePlayFSSEffect(grid){
   return true;
 }
 
-/* ------- POPUP FS (entrée) + slides ------- */
 function showFSPopup(fsCount){
   const popup=document.getElementById('fsPopup');
   const title=document.getElementById('fsTitle');
@@ -1877,6 +1982,7 @@ function showFSPopup(fsCount){
 
   const content = popup.querySelector('.fs-popup-content');
   popup.onclick=()=>{
+    Sound.play('click');
     content.classList.add('tv-off');
     content.addEventListener('animationend', ()=>{
       popup.style.display='none';
@@ -1887,7 +1993,6 @@ function showFSPopup(fsCount){
   };
 }
 
-/* ------------------ FS STATE ------------------ */
 const fsState = { active:false, total:0, current:0, winTotal:0 };
 let fsClearTagsNextSpin = false;
 
@@ -1907,11 +2012,10 @@ function startFS(count){
   $autoBtn.classList.remove('active','stopping');
   $autoBtn.textContent = 'Auto Spin';
 
-  // 🔇 Musique + ambiances OFF (pause franche = reprise sûre)
   stopAmbient();
   try { bgmMusic.pause(); } catch(e){}
-  bgmMusic.muted = false;       // on laisse démuté pour ne pas retomber dans l’autoplay policy
-  bgmMusic.volume = 0;          // prépare un fade propre à la sortie
+  bgmMusic.muted = false;    
+  bgmMusic.volume = 0;          
 }
 
 
@@ -1920,24 +2024,21 @@ function endFS(){
   fsState.active = false;
   document.body.classList.remove('fs-mode','fs-active');
 
-  // 🔊 Relance sûre de la loop + fade-in
+
   try {
   bgmMusic.muted = false;
   bgmMusic.volume = 0;
   const pr = bgmMusic.play();
   if (pr && pr.catch) pr.catch(()=>{});
 } catch(e){}
-fadeVolume(bgmMusic, BASE_BGM_VOL, 800);    // remonte en douceur
+fadeVolume(bgmMusic, BASE_BGM_VOL, 800);   
 
-  scheduleAmbient();                  // relance des ambiances
+  scheduleAmbient();                 
 }
 
 
 
 
-
-
-/* ------- POPUP de fin de Free Spins ------- */
 function showFsEndPopup(total, spinsPlayed){
   return new Promise(resolve=>{
     const overlay = document.getElementById('fsEnd');
@@ -1967,6 +2068,7 @@ function showFsEndPopup(total, spinsPlayed){
     document.getElementById('autoSpinBtn').disabled = true;
 
     overlay.addEventListener('mousedown', ()=>{
+      Sound.play('click');
       document.getElementById('spinBtn').disabled = false;
       document.getElementById('autoSpinBtn').disabled = false;
       close();
@@ -2009,10 +2111,13 @@ function showFsRetriggerPopup(extra){
     $autoBtn.disabled = true;
 
     overlay.addEventListener('mousedown', close, {once:true});
+    overlay.addEventListener('mousedown', () => {
+  Sound.play('click'); 
+  close();
+}, { once:true });
   });
 }
 
-/* ------------------ flow ------------------ */
 let currentGrid = makeStartGrid();
 let isSpinning = false;
 let isAuto = false;
@@ -2037,7 +2142,6 @@ function gridContainsGOC(grid){
   return false;
 }
 
-/* Nettoyage global des tags (DOM + masque) */
 function clearAllTags(mode='animated'){
   const cells=[...$grid.children];
   for(let r=0;r<ROWS;r++){
@@ -2059,7 +2163,6 @@ function clearAllTags(mode='animated'){
   }
 }
 
-/* ====== Animation de décompte de fin de spin + badges ====== */
 let bigWinRunning = false;
 
 function pickBadgeByMultiplier(mult){
@@ -2073,7 +2176,7 @@ function pickBadgeByMultiplier(mult){
 
 function showTotalWinAnimation(total){
   return new Promise(resolve=>{
-    const mult = total / BET;
+    const mult  = total / BET;
     const badge = pickBadgeByMultiplier(mult);
     if(mult <= 10){ resolve(); return; }
 
@@ -2081,9 +2184,9 @@ function showTotalWinAnimation(total){
     $btn.disabled = true;
     document.getElementById('autoSpinBtn').disabled = true;
 
-    const overlay = document.getElementById('bigwin');
+    const overlay  = document.getElementById('bigwin');
     const amountEl = document.getElementById('bigwinAmount');
-    const badgeEl = document.getElementById('bigwinBadge');
+    const badgeEl  = document.getElementById('bigwinBadge');
     overlay.style.display = 'flex';
     amountEl.textContent = '0.00 $';
 
@@ -2096,14 +2199,87 @@ function showTotalWinAnimation(total){
 
     const totalCents = Math.round(total*100);
     let stepCents = 4;
-    if(totalCents > 2000) stepCents = 10;
+    if(totalCents >  2000) stepCents = 10;
     if(totalCents > 10000) stepCents = 25;
     if(totalCents > 50000) stepCents = 50;
 
     let currentCents = 0;
     let skipped = false;
 
-    const skipHandler = ()=>{ skipped = true; };
+let endPlayed = false;
+
+function stopStart(){
+  try{ amountSfx.start.pause(); amountSfx.start.currentTime = 0; }catch(e){}
+}
+function stopLoop(){
+  amountSfx.loop.stop(); 
+}
+function playEndOnce(){
+  if(endPlayed) return;
+  endPlayed = true;
+  try{
+    amountSfx.end.currentTime = 0;
+    amountSfx.end.play().catch(()=>{});
+  }catch(e){}
+}
+
+window.amountDebug = window.amountDebug || {};
+function dbg(label, data){ try{ window.amountDebug[label] = data; }catch(_){} }
+
+async function startAudio(){
+  const ctx = getCtx();
+  try { await ctx.resume(); } catch(e){}
+
+  await amountSfx.loop.load();
+
+  try{
+    amountSfx.start.currentTime = 0;
+    await amountSfx.start.play().catch(()=>{});
+  }catch(e){}
+  let handoffDone = false;
+  const handoff = () => {
+    if (handoffDone) return;
+    handoffDone = true;
+    amountSfx.loop.setVolume(VOLUME.SFX, 0);
+    amountSfx.loop.play();
+    dbg('loopStartedAt', ctx.currentTime);
+  };
+
+  const attach = ()=>{
+    amountSfx.start.addEventListener('ended', handoff, { once:true });
+
+    const dur = amountSfx.start.duration;
+    dbg('startDuration', dur);
+
+    if (isFinite(dur) && dur > 0){
+      const early = Math.max(0, Math.floor(dur*1000 - 40));
+      setTimeout(handoff, early);
+    } else {
+      setTimeout(handoff, 100);
+    }
+  };
+
+  if (amountSfx.start.readyState >= 1 && isFinite(amountSfx.start.duration) && amountSfx.start.duration>0){
+    attach();
+  } else {
+    amountSfx.start.addEventListener('loadedmetadata', attach, { once:true });
+  }
+}
+
+function finishAudioForEnd(){
+  stopStart();
+  // micro-fade de la loop pour éviter un "click"
+  amountSfx.loop.setVolume(0, 80);
+  setTimeout(()=>{
+    stopLoop();
+    playEndOnce();
+  }, 80);
+}
+
+startAudio();
+
+    
+    const skipHandler = ()=>{ skipped = true; finishAudioForEnd(); };
     document.querySelector('.panel').addEventListener('mousedown', skipHandler, { once:true });
     overlay.addEventListener('mousedown', skipHandler, { once:true });
 
@@ -2115,26 +2291,32 @@ function showTotalWinAnimation(total){
       resolve();
     };
 
+    const finishVisual = ()=>{
+      amountEl.textContent = total.toFixed(2) + ' $';
+      finishAudioForEnd();
+      overlay.addEventListener('mousedown', close, { once:true });
+      document.querySelector('.panel').addEventListener('mousedown', close, { once:true });
+    };
+
     const tick = ()=>{
-      if(skipped){ currentCents = totalCents; }
-      else{
+      if(skipped){
+        currentCents = totalCents;
+      }else{
         currentCents += stepCents;
         if(currentCents > totalCents) currentCents = totalCents;
       }
       amountEl.textContent = (currentCents/100).toFixed(2) + ' $';
+
       if(currentCents < totalCents && !skipped){
         requestAnimationFrame(tick);
       }else{
-        amountEl.textContent = total.toFixed(2) + ' $';
-        overlay.addEventListener('mousedown', close, { once:true });
-        document.querySelector('.panel').addEventListener('mousedown', close, { once:true });
+        finishVisual();
       }
     };
     requestAnimationFrame(tick);
   });
 }
 
-/* ========= SPIN ========= */
 async function spin(){
   if(isSpinning || bigWinRunning) return;
   if(!fsState.active && bank < BET) return;
@@ -2143,17 +2325,15 @@ async function spin(){
 
   isSpinning = true;
   fssEffectPlayedThisSpin = false;
-  $btn.disabled=true;
+  $btn.disabled = true;
 
-  // Son de départ
   Sound.play('spin');
 
   try{
-    // Sort l'ancienne grille
     await dropOutOldGrid(preserveTagsThisSpin);
 
-    document.getElementById('win').textContent='0.00 $';
-    document.getElementById('wins').innerHTML='';
+    document.getElementById('win').textContent = '0.00 $';
+    document.getElementById('wins').innerHTML = '';
 
     if(fsState.active){
       if(fsClearTagsNextSpin){
@@ -2166,63 +2346,65 @@ async function spin(){
       suppressNextTags = false;
     }
 
-    if(!fsState.active){ bank-=BET; refreshBank(); }
+    if(!fsState.active){ bank -= BET; refreshBank(); }
 
-    currentGrid=makeStartGrid();
-    renderGrid(currentGrid,new Set(),initialMark, { preserveTagDOM: preserveTagsThisSpin });
-    await wait(FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow*0.75}));
+    currentGrid = makeStartGrid();
+    renderGrid(currentGrid, new Set(), initialMark, { preserveTagDOM: preserveTagsThisSpin });
+    await wait(FROM_PANEL_MS + computeFallTime({ baseMs:0, colDelay:DELAY.newCol, rowDelay:DELAY.newRow*0.75 }));
 
-    let total=0, chain=0;
-    let goldenTriggered=false;
+    let total = 0;
+    let goldenTriggered = false;
 
     while(true){
+
       while(true){
-        const clusters=findAllClusters(currentGrid);
-        if(clusters.length===0) break;
+        const clusters = findAllClusters(currentGrid);
+        if (clusters.length === 0) break;
 
-        chain++;
+        const sfxName = pickClusterSfxName(clusters, currentGrid);
+        Sound.play(sfxName);
+
         let wave = 0;
-clusters.forEach(cl => {
-  const mult = Math.max(1, cl.multSum || 0);
-  wave += payFor(cl.id, cl.cells.length) * mult;
-});
+        for (const cl of clusters) {
+          const mult = Math.max(1, cl.multSum || 0);
+          wave += payFor(cl.id, cl.cells.length) * mult;
+        }
+        total += wave;
 
-total += wave;
+        const placeTags = !suppressNextTags;
+        const tagTime = showRemovalWithTag(currentGrid, clusters, placeTags);
+        await wait(tagTime + 40);
+        suppressNextTags = false;
 
-const placeTags = !suppressNextTags;
-const tagTime = showRemovalWithTag(currentGrid, clusters, placeTags);
-await wait(tagTime + 40);
-suppressNextTags = false;
+        Sound.play('cascade');
 
-// Son de chute juste avant la gravité
-Sound.play('cascade');
-
-const markFall = applyGravity(currentGrid);
-document.getElementById('wins').innerHTML = '';
-renderGrid(currentGrid, new Set(), markFall, { preserveTagDOM: preserveTagsThisSpin });
-await wait(Math.max(
-  LOCAL_FALL_MS + computeFallTime({ baseMs:0, colDelay:DELAY.moveCol, rowDelay:DELAY.moveRow }),
-  FROM_PANEL_MS + computeFallTime({ baseMs:0, colDelay:DELAY.newCol, rowDelay:DELAY.newRow })
-) + 20);
-
-}
-
+        const markFall = applyGravity(currentGrid);
+        document.getElementById('wins').innerHTML = '';
+        renderGrid(currentGrid, new Set(), markFall, { preserveTagDOM: preserveTagsThisSpin });
+        await wait(Math.max(
+          LOCAL_FALL_MS + computeFallTime({ baseMs:0, colDelay:DELAY.moveCol, rowDelay:DELAY.moveRow }),
+          FROM_PANEL_MS + computeFallTime({ baseMs:0, colDelay:DELAY.newCol, rowDelay:DELAY.newRow })
+        ) + 20);
+      }
 
       const fired = await runGoldenIfPossible(currentGrid);
-      if(fired) goldenTriggered = true;
-      if(!fired) break;
+      if(fired){
+        goldenTriggered = true;
+        continue;
+      }
+      break;
     }
 
     if(!fsState.active){
       await maybePlayFSSEffect(currentGrid);
     }
 
-    document.getElementById('win').textContent=total.toFixed(2)+' $';
-    if(!fsState.active){ bank+=total; refreshBank(); }
+    document.getElementById('win').textContent = total.toFixed(2)+' $';
+    if(!fsState.active){ bank += total; refreshBank(); }
 
     if(fsState.active){
       fsState.winTotal += total;
-      fsState.current ++;
+      fsState.current++;
       updateFsTracker();
 
       const fssCount = countFSS(currentGrid);
@@ -2239,8 +2421,8 @@ await wait(Math.max(
           veil.className = 'fss-veil';
           cell.appendChild(veil);
           const fx = spawnFSSFrontFXAtCell(cell);
-          fx.addEventListener('animationend', () => fx.remove(), { once: true});
-          veil.addEventListener('animationend', () => veil.remove(), { once: true});
+          fx.addEventListener('animationend', () => fx.remove(), { once: true });
+          veil.addEventListener('animationend', () => veil.remove(), { once: true });
         });
 
         updateFsTracker();
@@ -2259,15 +2441,15 @@ await wait(Math.max(
 
     if(isAuto && bank < BET){
       isAuto = false;
-      const $auto=document.getElementById('autoSpinBtn');
+      const $auto = document.getElementById('autoSpinBtn');
       $auto.classList.remove('active','stopping');
-      $auto.textContent='Auto Spin';
+      $auto.textContent = 'Auto Spin';
     }
+
   } finally {
-    $btn.disabled=false;
+    $btn.disabled = false;
     isSpinning = false;
   }
-
   if(fsState.active){
     if(fsState.current < fsState.total){
       await wait(200);
@@ -2280,9 +2462,6 @@ await wait(Math.max(
     }
   }
 }
-
-
-/* --------- Auto Spin ---------- */
 const autoSpinBtn = document.getElementById("autoSpinBtn");
 
 autoSpinBtn.addEventListener("click", async () => {
@@ -2316,7 +2495,6 @@ autoSpinBtn.addEventListener("click", async () => {
 
 document.getElementById('spinBtn').addEventListener('click', spin);
 
-/* ===== Startup Gate Control ===== */
 const gate = document.getElementById('startupGate');
 const gateBtn = document.getElementById('gateStartBtn');
 
@@ -2337,10 +2515,8 @@ async function closeGateAndStartAudio(){
   await startLoop(bgmMusic, VOLUME.MUSIC, 600);
   await startLoop(bgmAmb,   VOLUME.AMB,   600);
 
-  // SFX d'ambiance aléatoires si tu les gardes
   unlockAmbients();
 
-  // fermer le gate
   gate.classList.add('gate-hide');
   const card = gate.querySelector('.gate-card');
   const end = ()=>{ gate.remove(); };
@@ -2348,46 +2524,22 @@ async function closeGateAndStartAudio(){
   setTimeout(end, 700);
 }
 
-
-
-
-// Clic sur le bouton
 gateBtn.addEventListener('click', closeGateAndStartAudio);
-
-// Clic n'importe où dans l’overlay
 gate.addEventListener('mousedown', (e)=>{
-  // protège contre clics accidentels à l’extérieur du bouton si tu veux :
-  // if(!e.target.closest('.gate-card')) return;
-  // Ici on accepte quand même tout clic :
+  Sound.play('click');
   closeGateAndStartAudio();
 });
 
-// Validation clavier (Enter/Espace)
 gate.addEventListener('keydown', (e)=>{
   if(e.key === 'Enter' || e.key === ' '){
     e.preventDefault();
     closeGateAndStartAudio();
   }
 });
-
-// Donner le focus au bouton au montage
+  
 window.addEventListener('load', ()=>{ gateBtn?.focus(); });
 
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
