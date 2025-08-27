@@ -1579,7 +1579,7 @@
         audio.playsInline = true;
         const track = ctx.createMediaElementSource(audio);
         const gain = ctx.createGain();
-        gain.gain.value = cfg.volume * 5;
+        gain.gain.value = cfg.volume * 2;
         track.connect(gain).connect(ctx.destination);
 
         return audio;
@@ -3125,5 +3125,6 @@
     </script>
   </body>
 </html>
+
 
 
