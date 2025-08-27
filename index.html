@@ -1241,6 +1241,26 @@
       }
 
       class GaplessLoop {
+        fadeOutAndStop(ms = 100){
+          if (this.fallbackMode){
+            try{
+              this.html.pause();
+              this.html.currentTime = 0;
+              this.html.loop = false;
+            }catch(e){}
+            return;
+          }
+          const ctx = getCtx();
+          if (!this.gain){ this.stop(); return; }
+          const now = ctx.currentTime;
+          try{
+            this.gain.gain.cancelScheduledValues(now);
+            this.gain.gain.setValueAtTime(this.gain.gain.value, now);
+            this.gain.gain.linearRampToValueAtTime(0, now + ms/1000);
+          }catch(e){}
+          setTimeout(()=> this.stop(), ms + 30);
+        }
+
         constructor(urls, { volume=1, loopStart=0, loopEnd=null } = {}){
           this.urls = Array.isArray(urls) ? urls : [urls];
           this.url = this.pickSupported(this.urls);
@@ -1259,23 +1279,54 @@
         pickSupported(urls){
           const a = document.createElement('audio');
           for (const u of urls){
-            const type =
-              u.endsWith('.mp3') ? 'audio/mpeg' :
-              u.endsWith('.ogg') ? 'audio/ogg'  :
-              '';
+            const type = u.endsWith('.mp3') ? 'audio/mpeg' :
+                         u.endsWith('.ogg') ? 'audio/ogg'  : '';
             if (!type || a.canPlayType(type)) return u;
           }
-          return urls[0]; // au pire
+          return urls[0];
         }
 
         async load(){
           if (this.loaded || this.loading) return this.loading || true;
+
+          if (location.protocol === 'file:') {
+            this.fallbackMode = true;
+            const html = new Audio(this.url);
+            html.preload = 'auto';
+            html.loop = true;
+            html.volume = this.volume;
+            html.playsInline = true;
+
+            await new Promise((resolve, reject)=>{
+              const onOk  = ()=>{ cleanup(); resolve(true); };
+              const onErr = ()=>{ cleanup(); reject(new Error('audio error')); };
+              const to = setTimeout(()=>{ cleanup(); resolve(true); }, 2000);
+              const cleanup = ()=>{
+                clearTimeout(to);
+                html.removeEventListener('canplay', onOk);
+                html.removeEventListener('error', onErr);
+                html.removeEventListener('stalled', onErr);
+              };
+              html.addEventListener('canplay', onOk);
+              html.addEventListener('error', onErr);
+              html.addEventListener('stalled', onErr);
+              html.load();
+            });
+
+            // prime autoplay
+            try { html.muted = true; await html.play(); html.pause(); html.currentTime = 0; html.muted = false; } catch(e){}
+
+            this.html = html;
+            this.loaded = true;
+            return true;
+          }
+
           const ctx = getCtx();
           this.loading = (async () => {
             try{
               const r = await fetch(this.url, { cache: 'force-cache' });
               if (!r.ok) throw new Error(`HTTP ${r.status} on ${this.url}`);
-              const ab = await r.arrayBuffer();
+              const ab  = await r.arrayBuffer();
               const buf = await new Promise((res, rej)=>{
                 ctx.decodeAudioData(ab, b => res(b), e => rej(e));
               });
@@ -1292,14 +1343,35 @@
               this.html.volume = this.volume;
               this.html.playsInline = true;
               await new Promise(r => {
-                const oncan = () => { this.loaded = true; this.html.removeEventListener('canplay', oncan); r(true); };
+                let to = null;
+                const oncan = () => {cleanup(); this.loaded = true; r(true);};
+                const onerr = () => { cleanup(); this.loaded = true; r(true); };
+                const cleanup = () => {
+                  if (to) clearTimeout(to);
+                  this.html.removeEventListener('canplay', oncan);
+                  this.html.removeEventListener('error', onerr);
+                  this.html.removeEventListener('stalled', onerr);
+                };
+
+                to = setTimeout(()=>{ onerr(); }, 2000);
                 this.html.addEventListener('canplay', oncan);
-                this.html.load();
+                this.html.addEventListener('error', onerr);
+                this.html.addEventListener('stalled', onerr);
+                this.html.addEventListener('stalled', onerr);
               });
+              try{
+                this.html.muted = true;
+                await this.html.play();
+                this.html.pause();
+                this.html.currentTime = 0;
+                this.html.muted = false;
+              }catch(e){}
             }
           })();
+
           return this.loading;
         }
+
 
         async play(){
           await this.load();
@@ -1307,11 +1379,7 @@
           try { await ctx.resume(); } catch(e){}
 
           if (this.fallbackMode){
-            try{
-              this.html.currentTime = this.loopStart || 0;
-              await this.html.play();
-            }catch(e){}
-            // ajuste volume tout de même
+            try{ this.html.currentTime = this.loopStart || 0; await this.html.play(); }catch(e){}
             this.html.volume = this.volume;
             return;
           }
@@ -1336,54 +1404,118 @@
           this.gain.gain.cancelScheduledValues(now);
           this.gain.gain.setValueAtTime(0, now);
           this.gain.gain.linearRampToValueAtTime(this.volume, now + 0.04);
-          }
+        }
 
-          stop(){
-            if (this.fallbackMode){
-              try{ this.html.pause(); }catch(e){}
-              return;
-            }
-            try{ this.src?.stop(0); }catch(e){}
-            try{ this.src?.disconnect(); }catch(e){}
-            this.src = null;
-          }
+        stop(){
+          if (this.fallbackMode){ try{ this.html.pause(); }catch(e){} return; }
+          try{ this.src?.stop(0); }catch(e){}
+          try{ this.src?.disconnect(); }catch(e){}
+          this.src = null;
+        }
 
-          setVolume(v, fadeMs = 0){
+        setVolume(v, fadeMs = 0){
           this.volume = v;
-
-          if (this.fallbackMode){
-            if (this.html) this.html.volume = v;
-            return;
-          }
-
+          if (this.fallbackMode){ if (this.html) this.html.volume = v; return; }
           const ctx = getCtx();
           if (!this.gain) return;
-
           const now = ctx.currentTime;
           this.gain.gain.cancelScheduledValues(now);
-
           if (fadeMs > 0){
-            // on part de la valeur actuelle et on rampe jusqu'à v
             this.gain.gain.setValueAtTime(this.gain.gain.value, now);
             this.gain.gain.linearRampToValueAtTime(v, now + fadeMs/1000);
-          }
-          else {
+          } else {
             this.gain.gain.setValueAtTime(v, now);
           }
         }
-
       }
+
 
       const amountSfx = {
         start: new Audio('audio/amount_start.ogg'),
-        loop : new GaplessLoop(
-        ['audio/amount_loop.ogg','audio/amount_loop.mp3'],
-        { volume: VOLUME.SFX, loopStart: 0, loopEnd: null }
-        ),
-
+        loop : new GaplessLoop('audio/amount_loop.ogg'),
         end  : new Audio('audio/amount_end.ogg'),
         primed: false
       };
+
+      let _amountHandoffTimer = null;
+      let _amountEndedOnce = true;
+      let _amountWasStarted = false;
+
+      function startAmountAudio(){
+        _amountEndedOnce = false;
+        _amountWasStarted = true;
+        try{ getCtx().resume(); }catch(e){}
+
+        if (_amountHandoffTimer){ clearTimeout(_amountHandoffTimer); _amountHandoffTimer = null; }
+        try{ amountSfx.start.onended = null; }catch(e){}
+
+        try{ amountSfx.loop.fadeOutAndStop(1); }catch(e){}
+
+        amountSfx.loop.load().catch(()=>{});
+
+        try{
+          amountSfx.start.pause();
+          amountSfx.start.currentTime = 0;
+        }catch(e){}
+
+        let handed = false;
+        const doHandoff = async ()=>{
+          if (handed) return; handed = true;
+          try{
+            amountSfx.loop.setVolume(VOLUME.SFX, 0);
+            await amountSfx.loop.play();
+            amountSfx.loop.setVolume(VOLUME.SFX, 80);
+          }catch(e){}
+        };
+
+        amountSfx.start.onended = doHandoff;
+
+        const armTimer = ()=>{
+          const dur = amountSfx.start.duration;
+          const early = (isFinite(dur) && dur > 0)
+            ? Math.max(0, Math.floor(dur*1000 - 60))
+            : 220; // durée inconnue → petit filet de sécu
+          if (_amountHandoffTimer) clearTimeout(_amountHandoffTimer);
+          _amountHandoffTimer = setTimeout(doHandoff, early);
+        };
+
+        if (isFinite(amountSfx.start.duration) && amountSfx.start.duration > 0){
+          armTimer();
+        }else{
+          amountSfx.start.addEventListener('loadedmetadata', function onMeta(){
+            amountSfx.start.removeEventListener('loadedmetadata', onMeta);
+            armTimer();
+          });
+        }
+
+        try{
+          amountSfx.start.currentTime = 0;
+          amountSfx.start.play().catch(()=>{});
+        }catch(e){}
+      }
+      
+      function finishAmountAudio(){
+        if (_amountHandoffTimer){ clearTimeout(_amountHandoffTimer); _amountHandoffTimer = null; }
+        try{ amountSfx.start.onended = null; }catch(e){}
+        try{ amountSfx.start.pause(); amountSfx.start.currentTime = 0; }catch(e){}
+        try{ amountSfx.loop.fadeOutAndStop(100); }catch(e){}
+        if (_amountWasStarted && _amountEndedOnce){
+          _amountEndedOnce = true;
+          try{
+            amountSfx.end.currentTime = 0;
+            amountSfx.end.play().catch(()=>{});
+          }
+
+          catch(e){}
+        }
+
+        _amountWasStarted = false;
+
+        _amountEndedOnce = true;
+          try{ amountSfx.end.currentTime = 0; amountSfx.end.play().catch(()=>{}); }catch(e){}
+        }
+      
+
 
       [amountSfx.start, amountSfx.end].forEach(a=>{
         a.preload = 'auto';
@@ -1503,7 +1635,7 @@
               'audio/wav';
             if (a.canPlayType(type)) return u;
           }
-          return urls[0]; // fallback
+          return urls[0];
         }
 
         function add(name, urls, { volume=1, pool=3 } = {}){
@@ -1624,7 +1756,6 @@
 
       function scheduleAmbient() {
         if (fsState?.active || document.hidden) return;
-        // Attente aléatoire 8–25s
         const delay = Math.floor(8000 + Math.random() * 17000);
         clearTimeout(ambientTimer);
         ambientTimer = setTimeout(playRandomAmbient, delay);
@@ -1693,7 +1824,7 @@
           }))
 
           .finally(()=>{
-            scheduleAmbient(); // on arme le timer seulement après prime
+            scheduleAmbient();
           });
         }
 
@@ -2037,7 +2168,6 @@
                   const nr = cr+dr, nc = cc+dc;
                   if (nr<0 || nr>=ROWS_N || nc<0 || nc>=COLS_N) continue;
                   const nid = grid[nr][nc];
-                  // admissible si c'est la même base, ou un wild
                   if (nid === baseId || isWild(nid)){
                     const k = `${nr},${nc},${baseId}`;
                     if (!seenForBase.has(k)){
@@ -2643,7 +2773,7 @@
 
       overlay.addEventListener('mousedown', close, {once:true});
       overlay.addEventListener('mousedown', () => {
-        Sound.play('click'); // ← son de click
+        Sound.play('click');
         close();
       },
 
@@ -2714,7 +2844,8 @@
     return new Promise(resolve=>{
       const mult  = total / BET;
       const badge = pickBadgeByMultiplier(mult);
-      if(mult <= 10){ resolve(); return; }
+
+      if (mult <= 10){resolve(); return; }
 
       bigWinRunning = true;
       $btn.disabled = true;
@@ -2723,155 +2854,75 @@
       const overlay  = document.getElementById('bigwin');
       const amountEl = document.getElementById('bigwinAmount');
       const badgeEl  = document.getElementById('bigwinBadge');
+
       overlay.style.display = 'flex';
       amountEl.textContent = '0.00 $';
 
-      if(badge === null || badge === ''){
+      if (!badge){
         badgeEl.style.display = 'none';
-      }
-
-      else{
+      } else {
         badgeEl.src = badge;
         badgeEl.style.display = 'block';
       }
 
-      const totalCents = Math.round(total*100);
+      startAmountAudio();
+
+      const totalCents = Math.round(total * 100);
       let stepCents = 4;
-      if(totalCents >  2000) stepCents = 10;
-      if(totalCents > 10000) stepCents = 25;
-      if(totalCents > 50000) stepCents = 50;
+      if (totalCents >   2000) stepCents = 10;
+      if (totalCents >  10000) stepCents = 25;
+      if (totalCents >  50000) stepCents = 50;
 
       let currentCents = 0;
+      let rafId = null;
       let skipped = false;
-      let endPlayed = false;
 
-      function stopStart(){
-        try{ amountSfx.start.pause(); amountSfx.start.currentTime = 0; }catch(e){}
+      function updateAmount(){
+        amountEl.textContent = (currentCents/100).toFixed(2) + ' $';
       }
 
-      function stopLoop(){
-        amountSfx.loop.stop(); // gapless stop
+      function endAnimation(){
+        finishAmountAudio();
+
+        overlay.style.display = 'none';
+        bigWinRunning = false;
+        $btn.disabled = false;
+        document.getElementById('autoSpinBtn').disabled = false;
+        resolve();
       }
 
-      function playEndOnce(){
-        if(endPlayed) return;
-        endPlayed = true;
-        try{
-          amountSfx.end.currentTime = 0;
-          amountSfx.end.play().catch(()=>{});
+      function tick(){
+        if (skipped){
+          currentCents = totalCents;
+          updateAmount();
+          endAnimation();
+          return;
         }
 
-        catch(e){}
+        currentCents += stepCents;
+        if (currentCents >= totalCents){
+          currentCents = totalCents;
+          updateAmount();
+          endAnimation();
+          return;
+        }
+
+        updateAmount();
+        rafId = requestAnimationFrame(tick);
       }
 
-      window.amountDebug = window.amountDebug || {};
-      function dbg(label, data){ try{ window.amountDebug[label] = data; }catch(_){} }
-
-      async function startAudio(){
-        const ctx = getCtx();
-        try { await ctx.resume();
-      }
-      
-      catch(e){}
-
-      await amountSfx.loop.load();
-
-      try{
-        amountSfx.start.currentTime = 0;
-        await amountSfx.start.play().catch(()=>{});
-      }
-
-      catch(e){}
-
-      let handoffDone = false;
-      const handoff = () => {
-        if (handoffDone) return;
-        handoffDone = true;
-        amountSfx.loop.setVolume(VOLUME.SFX, 0);
-        amountSfx.loop.play();
-        dbg('loopStartedAt', ctx.currentTime);
+      const onClickSkip = ()=>{
+        skipped = true;
+        if (rafId) cancelAnimationFrame(rafId);
+        tick();
+        overlay.removeEventListener('mousedown', onClickSkip);
       };
+      overlay.addEventListener('mousedown', onClickSkip);
 
-      const attach = ()=>{
-        amountSfx.start.addEventListener('ended', handoff, { once:true });
+      rafId = requestAnimationFrame(tick);
+    });
+  }
 
-        const dur = amountSfx.start.duration;
-        dbg('startDuration', dur);
-
-        if (isFinite(dur) && dur > 0){
-          const early = Math.max(0, Math.floor(dur*1000 - 40));
-          setTimeout(handoff, early);
-        }
-
-        else {
-          setTimeout(handoff, 100);
-        }
-      };
-
-      if (amountSfx.start.readyState >= 1 && isFinite(amountSfx.start.duration) && amountSfx.start.duration>0){
-        attach();
-      }
-      else {
-        amountSfx.start.addEventListener('loadedmetadata', attach, { once:true });
-      }
-    }
-
-    function finishAudioForEnd(){
-      stopStart();
-      amountSfx.loop.setVolume(0, 80);
-      setTimeout(()=>{
-        stopLoop();
-        playEndOnce();
-      },
-
-      80);
-    }
-
-    startAudio();
-
-        const skipHandler = ()=>{ skipped = true; finishAudioForEnd(); };
-        document.querySelector('.panel').addEventListener('mousedown', skipHandler, { once:true });
-        overlay.addEventListener('mousedown', skipHandler, { once:true });
-
-        const close = ()=>{
-          overlay.style.display='none';
-          bigWinRunning = false;
-          $btn.disabled = false;
-          document.getElementById('autoSpinBtn').disabled = false;
-          resolve();
-        };
-
-        const finishVisual = ()=>{
-          amountEl.textContent = total.toFixed(2) + ' $';
-          finishAudioForEnd();
-          overlay.addEventListener('mousedown', close, { once:true });
-          document.querySelector('.panel').addEventListener('mousedown', close, { once:true });
-        };
-
-        const tick = ()=>{
-          if(skipped){
-            currentCents = totalCents;
-          }
-
-          else{
-            currentCents += stepCents;
-            if(currentCents > totalCents) currentCents = totalCents;
-          }
-
-          amountEl.textContent = (currentCents/100).toFixed(2) + ' $';
-
-          if(currentCents < totalCents && !skipped){
-            requestAnimationFrame(tick);
-          }
-
-          else{
-            finishVisual();
-          }
-        };
-
-        requestAnimationFrame(tick);
-      });
-    }
 
     async function spin(){
       if(isSpinning || bigWinRunning) return;
@@ -3079,7 +3130,7 @@
         el.muted = false;
         el.loop  = true;
         el.volume = 0;
-        await el.play();            // geste utilisateur -> devrait fonctionner
+        await el.play();
         fadeVolume(el, targetVol, fadeMs);
       }
 
@@ -3094,7 +3145,7 @@
       }
 
       catch(e){}
-      
+
       await startLoop(bgmMusic, VOLUME.MUSIC, 600);
       await startLoop(bgmAmb,   VOLUME.AMB,   600);
 
