@@ -480,10 +480,159 @@
   line-height:1.4;
   max-width: 640px;
 }
+
+/* === POPUP : plus grande === */
+.gate-card{
+  /* avant: max-width: 1200px; padding:50px 40px; */
+  max-width: min(86vw, 1400px);
+  padding: 64px 56px;
+}
+
+/* Titre plus gros */
+.gate-card h1{
+  /* avant: clamp(28px, 5vw, 54px) */
+  font-size: clamp(36px, 5.2vw, 72px);
+  margin: 10px 0 28px;
+}
+
+/* === Grille 3 colonnes bien larges (effet colonne) === */
+.gate-features{
+  /* avant: max-width: 980px; gap: 22px; */
+  max-width: min(90vw, 1200px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 2.4vw, 40px);
+  align-items: start;
+  margin: 24px auto 10px;
+}
+
+/* Chaque “colonne” : icône au-dessus, texte dessous */
+.feature{
+  display: flex;
+  flex-direction: column;
+  align-items: center;  /* on centre de base */
+  text-align: center;
+  gap: 14px;
+}
+
+/* On rétablit l’alignement demandé gauche/centre/droite */
+.feature-left  { align-items: flex-start; text-align: left;  }
+.feature-center{ align-items: center;     text-align: center;}
+.feature-right { align-items: flex-end;   text-align: right; }
+
+/* Icônes plus grandes (et responsive) */
+.feature-icon img{
+  /* avant: max-height: 96px */
+  max-height: clamp(110px, 14vh, 170px);
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* Superposition case + golden cap ajustée avec la nouvelle taille */
+.sym-case     { max-height: clamp(110px, 14vh, 170px); width:auto; display:block; }
+.sym-golden{
+  position:absolute; top:50%; left:50%;
+  transform: translate(-50%,-50%) scale(.9);
+  max-height: clamp(86px, 11vh, 130px);
+  pointer-events:none;
+}
+
+/* Texte plus lisible et équilibré entre colonnes */
+.feature-text{
+  font-size: clamp(16px, 1.6vw, 24px);
+  line-height: 1.35;
+}
+.feature-text strong{
+  color:#ffd54a;
+  font-size: clamp(18px, 1.8vw, 26px);
+  letter-spacing: .3px;
+}
+
+/* Bouton plus visible */
+.gate-btn{
+  /* avant: font-size clamp(16px, 2.6vw, 20px) */
+  font-size: clamp(18px, 2.4vw, 24px);
+  padding: 14px 22px;
+  margin-top: 20px;
+}
+
+/* Logo SG un peu plus grand pour équilibrer */
+.gate-logo-sg{
+  max-width: 50px;  /* avant: 120px */
+  opacity: .9;
+}
+
+/* Mobile : on empile les colonnes et on garde de grosses icônes */
+@media (max-width: 720px){
+  .gate-card{ padding: 40px 22px; }
+  .gate-features{
+    grid-template-columns: 1fr;
+    gap: 18px;
+    max-width: 96vw;
+  }
+  .feature-left, .feature-center, .feature-right{
+    align-items: center;
+    text-align: center;
+  }
+  .feature-icon img{ max-height: clamp(100px, 22vw, 140px); }
+}
+
 .gate-text p{ margin: 10px 0; }
 .gate-text strong{ 
   color:#ffd54a;
   font-size: 1.05em;
+}
+/* ===== Features avec icônes au-dessus du texte ===== */
+.gate-features{
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 22px;
+  align-items: start;
+  margin: 16px auto 6px;
+  max-width: 980px;
+}
+
+.feature{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+}
+
+.feature-left  { align-items:flex-start; text-align:left; }
+.feature-center{ align-items:center;     text-align:center; }
+.feature-right { align-items:flex-end;   text-align:right; }
+
+.feature-icon img{
+  max-height: 96px;
+  width: auto;
+  object-fit: contain;
+  display:block;
+}
+
+/* Superposition case + golden cap */
+.sym-case-wrap{ position:relative; display:inline-block; }
+.sym-case     { max-height:96px; width:auto; display:block; }
+.sym-golden{
+  position:absolute;
+  top:50%; left:50%;
+  transform: translate(-50%,-50%) scale(.86);
+  max-height:76px;
+  pointer-events:none;
+}
+
+/* Responsive : on empile en colonne sur mobile */
+@media (max-width: 720px){
+  .gate-features{
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .feature-left,
+  .feature-center,
+  .feature-right{
+    align-items:center;
+    text-align:center;
+  }
 }
 
 .gate-btn{
@@ -498,6 +647,41 @@
 }
 .gate-btn:hover{ filter:brightness(1.06) }
 .gate-btn:active{ transform:translateY(1px) }
+
+/* --- Nouveaux symboles dans la popup --- */
+.gate-symbols{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.gate-symbols img{
+  max-height: 100px;
+  width: auto;
+  object-fit: contain;
+}
+
+.sym-case-wrap{
+  position: relative;
+  display: inline-block;
+}
+
+.sym-case{
+  max-height: 100px;
+  width: auto;
+  display: block;
+}
+
+.sym-golden{
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%) scale(0.8);
+  max-height: 80px;
+  pointer-events: none;
+}
+
 
 @keyframes gateIn{
   0%{ transform:scale(0,.02); opacity:0 }
@@ -514,22 +698,48 @@
   <!-- === STARTUP GATE (force click before playing) === -->
 <div id="startupGate" class="gate-overlay" role="dialog" aria-modal="true">
   <div class="gate-card">
-    
-    <!-- Logo principal centré -->
-    <img src="img/logo.png" alt="Logo" class="gate-logo">
-
     <h1>WELCOME TO THE RED CAP GAME</h1>
-
-    <div class="gate-text">
-      <p><strong>Tag cascades :</strong><br>
-      Winning Positions are marked by tag, the symbols are removed and new symbolds drop in!</p>
-
-      <p><strong>The Red Cap Mechanic:</strong><br>
-      The Kaito's Red Cap grabs a symbol and replaces all Tag positions with it!</p>
-
-      <p><strong>Frees Spin Bonus:</strong><br>
-      Have 3 or 4 Kaito symbol on the board and earn 10 or 12 free spins!</p>
+    <!-- Logo principal centré -->
+    <!-- Ensemble de symboles -->
+<!-- 3 features alignées : gauche / centre / droite -->
+<div class="gate-features">
+  <!-- GAUCHE : TAG -->
+  <div class="feature feature-left">
+    <div class="feature-icon">
+      <img src="img/tag.png" alt="Tag">
     </div>
+    <p class="feature-text">
+      <strong>Tag cascades :</strong><br>
+      Winning Positions are marked by tag, the symbols are removed and new symbols drop in!
+    </p>
+  </div>
+
+  <!-- CENTRE : CASE + GOLDEN CAP superposés -->
+  <div class="feature feature-center">
+    <div class="feature-icon">
+      <div class="sym-case-wrap">
+        <img src="img/case.png" alt="Case" class="sym-case">
+        <img src="img/golden_cap.png" alt="Golden Cap" class="sym-golden">
+      </div>
+    </div>
+    <p class="feature-text">
+      <strong>The Red Cap Mechanic:</strong><br>
+      The Kaito's Red Cap grabs a symbol and replaces all Tag positions with it!
+    </p>
+  </div>
+
+  <!-- DROITE : FREE SPINS -->
+  <div class="feature feature-right">
+    <div class="feature-icon">
+      <img src="img/fs.png" alt="Free Spins">
+    </div>
+    <p class="feature-text">
+      <strong>Frees Spin Bonus:</strong><br>
+      Have 3 or 4 Kaito symbol on the board and earn 10 or 12 free spins!
+    </p>
+  </div>
+</div>
+
 
     <button id="gateStartBtn" class="gate-btn" autofocus>CLICK TO START</button>
 
@@ -624,6 +834,23 @@
 const bgm = document.getElementById('bgm');
 bgm.volume = 0; // on fera un fade-in
 
+const BASE_BGM_VOL = 0.6;
+
+function ensureBgmPlaying(vol = BASE_BGM_VOL, fadeMs = 600){
+  try { bgm.muted = false; } catch(e){}
+  try { bgm.loop  = true; }  catch(e){}
+  // relance si nécessaire
+  if (bgm.paused) { try { bgm.play(); } catch(e){} }
+  // sécurise si la loop s'est “terminée”
+  bgm.addEventListener('ended', () => {
+    try { bgm.currentTime = 0; bgm.play(); } catch(e){}
+  }, { once:true });
+
+  // remonte le volume en douceur
+  fadeVolumeTo(vol, fadeMs);
+}
+
+
 function fadeVolumeTo(target, durationMs){
   const start = bgm.volume;
   const delta = target - start;
@@ -636,19 +863,6 @@ function fadeVolumeTo(target, durationMs){
   requestAnimationFrame(step);
 }
 
-
-// Fade linéaire
-function fadeVolumeTo(target, durationMs){
-  const start = bgm.volume;
-  const delta = target - start;
-  const t0 = performance.now();
-  function step(t){
-    const p = Math.min(1, (t - t0) / durationMs);
-    bgm.volume = start + delta * p;
-    if (p < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
 
 // Débloque audio sur la 1ère interaction si le navigateur refuse l'audible sans geste
 function resumeAndUnmute(){
@@ -668,8 +882,8 @@ document.addEventListener('touchstart', resumeAndUnmute, { once:true });
 
 // Si retour d'onglet -> s'assurer que la musique reprend
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && bgm.paused) {
-    bgm.play().catch(()=>{ /* sans geste, iOS peut encore bloquer le son */ });
+  if (!document.hidden && (bgm.paused || bgm.volume === 0)){
+    ensureBgmPlaying();
   }
 });
 
@@ -845,20 +1059,6 @@ document.addEventListener('visibilitychange', () => {
   }
 });
 
-
-// Stop / redémarre les ambiances selon la visibilité de l'onglet
-function stopAmbient() {
-  clearTimeout(ambientTimer);
-  ambientTimer = null;
-  ambientPlaying = false;
-  ambientPlayers.forEach(a => { a.pause(); a.currentTime = 0; });
-}
-
-document.addEventListener('visibilitychange', () => {
-  if (document.hidden) stopAmbient();
-  else if (!fsState.active) scheduleAmbient();
-});
-
 // Déverrouillage **sur le clic du gate** (même geste utilisateur)
 function primeAmbientsOnGateClick(){
   Promise.allSettled(ambientPlayers.map(async a => {
@@ -930,16 +1130,6 @@ const SYM=[
 
 ];
 
-// === Wild helpers ===
-const WILD_MULT = { W:1, W2:2, W3:3, W4:4, W5:5, W6:6, W7:7, W8:8, W9:9, W10:10 };
-
-function isWild(id){
-  return id && (id === 'W' || id in WILD_MULT);
-}
-
-function wildMultOf(id){
-  return isWild(id) ? (WILD_MULT[id] || 1) : 1;
-}
 // === WILD helpers (substitution + multipliers) ===
 const WILD_MULT_SUM = { W:0, W2:2, W3:3, W4:4, W5:5, W6:6, W7:7, W8:8, W9:9, W10:10 };
 
@@ -1407,9 +1597,7 @@ function showRemovalWithTag(grid,clusters,placeTags=true){
 
   clusters.forEach(cl=>{
     const mult = Math.max(1, cl.multSum || 0);
-const amount = payFor(cl.id, cl.cells.length) * mult;
-
-
+    const amount = payFor(cl.id, cl.cells.length) * mult;
 
     let minDelay = Infinity;
     cl.cells.forEach(([r,c])=>{
@@ -1420,57 +1608,46 @@ const amount = payFor(cl.id, cl.cells.length) * mult;
 
     setTimeout(()=>showClusterWin(amount, cl.cells), Math.max(0, minDelay));
 
+    // --- animation de retrait + pose des tags
     cl.cells.forEach(([r,c])=>{
-  const idx = r*COLS + c;
-  const cell = cells[idx];
-  const sprite = cell.querySelector('.sprite');
-  const delay = c*COL_DELAY + r*ROW_DELAY;
+      const idx   = r*COLS + c;
+      const cell  = cells[idx];
+      const sprite= cell.querySelector('.sprite');
+      const delay = c*COL_DELAY + r*ROW_DELAY;
 
-  // ⬇️ NEW: si la case est taguée ET contient un WILD, on ne la retire pas
-  const idHere = grid[r][c];
-  const keepWild = tagMask[r][c] && isWild(idHere);
+      if (delay > maxDelay) maxDelay = delay;
 
-  if (delay > maxDelay) maxDelay = delay;
-
-  if (sprite){
-    if (keepWild){
-      // On peut juste faire un petit feedback visuel si tu veux (optionnel)
-      // sprite.classList.add('hit-pulse');
-      // Pas de pop-win, pas de remove
-    } else {
-      sprite.style.animationDelay = `${delay}ms`;
-      sprite.classList.add('pop-win');
-      setTimeout(()=>{
-        if (sprite && sprite.parentNode) sprite.parentNode.removeChild(sprite);
-        if (placeTags && !cell.querySelector('.tag-bg')){
+      if (sprite){
+        sprite.style.animationDelay = `${delay}ms`;
+        sprite.classList.add('pop-win');
+        setTimeout(()=>{
+          if (sprite && sprite.parentNode) sprite.parentNode.removeChild(sprite);
+          if (placeTags && !cell.querySelector('.tag-bg')){
+            const tag=document.createElement('div');
+            tag.className='tag-bg tag-pop';
+            tag.appendChild(makeImg(TAG_IMG));
+            cell.appendChild(tag);
+          }
+        }, POP_MS+delay);
+      } else if (placeTags){
+        if (!cell.querySelector('.tag-bg')){
           const tag=document.createElement('div');
           tag.className='tag-bg tag-pop';
           tag.appendChild(makeImg(TAG_IMG));
           cell.appendChild(tag);
         }
-      }, POP_MS+delay);
-    }
-  } else if (placeTags){
-    if (!keepWild && !cell.querySelector('.tag-bg')){
-      const tag=document.createElement('div');
-      tag.className='tag-bg tag-pop';
-      tag.appendChild(makeImg(TAG_IMG));
-      cell.appendChild(tag);
-    }
-  }
+      }
 
-  if (placeTags){ tagMask[r][c]=true; justTagged.add(`${r},${c}`); }
-});
-// AVANT
-// clusters.forEach(cl=>cl.cells.forEach(([r,c])=>grid[r][c]=null));
+      if (placeTags){ 
+        tagMask[r][c]=true; 
+        justTagged.add(`${r},${c}`); 
+      }
+    });
 
-// APRES : on ne met à null que si ce n’est pas un WILD tagué
-clusters.forEach(cl => cl.cells.forEach(([r,c]) => {
-  const idHere = grid[r][c];
-  const keepWild = tagMask[r][c] && isWild(idHere);
-  if (!keepWild) grid[r][c] = null;
-}));
-
+    // --- suppression logique dans la grille (wilds inclus)
+    cl.cells.forEach(([r,c]) => {
+      grid[r][c] = null;
+    });
   });
 
   if(globalStartDelay !== Infinity){
@@ -1479,10 +1656,9 @@ clusters.forEach(cl => cl.cells.forEach(([r,c]) => {
 
   const totalDuration = POP_MS + maxDelay;
   setTimeout(()=>applyHitPresentation(hitSet, false), totalDuration);
-
-  clusters.forEach(cl=>cl.cells.forEach(([r,c])=>grid[r][c]=null));
   return totalDuration;
 }
+
 
 /* ==== GOLDEN CAP mechanic ==== */
 let suppressNextTags = false;
@@ -1537,7 +1713,7 @@ async function runGoldenIfPossible(currentGrid){
 
   // ⬇️ NEW: ne remplace pas FSS, et ne remplace pas un WILD si la case est taguée
   if (idHere === 'FSS') continue;
-  if (isWild(idHere)) continue;
+  if (tagMask[r][c] && isWild(idHere)) continue;
 
   swapSpriteAt(cells, r, c, targetId);
   replaced.push([r,c]);
@@ -1714,24 +1890,33 @@ function startFS(count){
   $autoBtn.classList.remove('active','stopping');
   $autoBtn.textContent = 'Auto Spin';
 
-  // 🔇 Musique + ambiances OFF
+  // 🔇 Musique + ambiances OFF (pause franche = reprise sûre)
   stopAmbient();
-  fadeVolumeTo(0, 500);
-  setTimeout(() => bgm.pause(), 520);
+  try { bgm.pause(); } catch(e){}
+  bgm.muted = false;       // on laisse démuté pour ne pas retomber dans l’autoplay policy
+  bgm.volume = 0;          // prépare un fade propre à la sortie
 }
+
+
 
 function endFS(){
   fsState.active = false;
-  document.body.classList.remove('fs-mode');
-  document.body.classList.remove('fs-active');
+  document.body.classList.remove('fs-mode','fs-active');
 
-  // 🔊 Musique + ambiances ON
-  bgm.muted = false;
-  bgm.play().catch(()=>{});
-  fadeVolumeTo(0.6, 800);
+  // 🔊 Relance sûre de la loop + fade-in
+  try {
+    bgm.muted = false;
+    bgm.volume = 0;                  // démarre à 0…
+    const pr = bgm.play();           // …puis play explicite
+    if (pr && pr.catch) pr.catch(()=>{});
+  } catch(e){}
+  fadeVolumeTo(0.6, 800);            // remonte en douceur
 
-  scheduleAmbient();
+  scheduleAmbient();                  // relance des ambiances
 }
+
+
+
 
 
 
@@ -1753,6 +1938,8 @@ function showFsEndPopup(total, spinsPlayed){
       content.addEventListener('animationend', ()=>{
         overlay.style.display = 'none';
         content.classList.remove('tv-off');
+        ensureBgmPlaying(); // sécurité si le navigateur avait mis l’élément en pause
+
         resolve();
       }, {once:true});
     };
@@ -1981,26 +2168,25 @@ clusters.forEach(cl => {
   wave += payFor(cl.id, cl.cells.length) * mult;
 });
 
+total += wave;
 
-        total+=wave;
+const placeTags = !suppressNextTags;
+const tagTime = showRemovalWithTag(currentGrid, clusters, placeTags);
+await wait(tagTime + 40);
+suppressNextTags = false;
 
-        const placeTags = !suppressNextTags;
-        const tagTime=showRemovalWithTag(currentGrid,clusters,placeTags);
-        await wait(tagTime+40);
-        suppressNextTags = false;
+// Son de chute juste avant la gravité
+Sound.play('cascade');
 
-        // Son de chute juste avant la gravité
-        Sound.play('cascade');
+const markFall = applyGravity(currentGrid);
+document.getElementById('wins').innerHTML = '';
+renderGrid(currentGrid, new Set(), markFall, { preserveTagDOM: preserveTagsThisSpin });
+await wait(Math.max(
+  LOCAL_FALL_MS + computeFallTime({ baseMs:0, colDelay:DELAY.moveCol, rowDelay:DELAY.moveRow }),
+  FROM_PANEL_MS + computeFallTime({ baseMs:0, colDelay:DELAY.newCol, rowDelay:DELAY.newRow })
+) + 20);
 
-        const markFall=applyGravity(currentGrid);
-        document.getElementById('wins').innerHTML='';
-        renderGrid(currentGrid,new Set(),markFall, { preserveTagDOM: preserveTagsThisSpin });
-        await wait( Math.max(
-          LOCAL_FALL_MS + computeFallTime({baseMs:0,colDelay:DELAY.moveCol,rowDelay:DELAY.moveRow}),
-          FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow})
-        ) + 20 );
-      }
-
+}
 
 
       const fired = await runGoldenIfPossible(currentGrid);
@@ -2157,6 +2343,7 @@ window.addEventListener('load', ()=>{ gateBtn?.focus(); });
 </script>
 </body>
 </html>
+
 
 
 
