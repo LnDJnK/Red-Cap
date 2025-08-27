@@ -940,6 +940,18 @@ function isWild(id){
 function wildMultOf(id){
   return isWild(id) ? (WILD_MULT[id] || 1) : 1;
 }
+// === WILD helpers (substitution + multipliers) ===
+const WILD_MULT_SUM = { W:0, W2:2, W3:3, W4:4, W5:5, W6:6, W7:7, W8:8, W9:9, W10:10 };
+
+function isWild(id){
+  return id === 'W' || id === 'W2' || id === 'W3' || id === 'W4' || id === 'W5'
+      || id === 'W6' || id === 'W7' || id === 'W8' || id === 'W9' || id === 'W10';
+}
+
+function wildSumOf(id){
+  return WILD_MULT_SUM[id] || 0;
+}
+
 
 const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.01,0.02,
                0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01];
@@ -999,7 +1011,18 @@ const PAY={
   SK8:[{min:26,val:150},{min:13,val:25},{min:11,val:7.5},{min:9,val:2.5},{min:8,val:0.7},{min:7,val:0.5},{min:6,val:0.4},{min:5,val:0.3}],
   SUN:[{min:26,val:250},{min:13,val:50},{min:11,val:15},{min:9,val:5},{min:8,val:1.5},{min:7,val:1},{min:6,val:0.7},{min:5,val:0.5}],
   HED:[{min:26,val:250},{min:13,val:50},{min:11,val:15},{min:9,val:5},{min:8,val:1.5},{min:7,val:1},{min:6,val:0.7},{min:5,val:0.5}],
-  CAP:[{min:26,val:500},{min:13,val:100},{min:11,val:30},{min:9,val:10},{min:8,val:3},{min:7,val:2},{min:6,val:1.5},{min:5,val:1}]
+  CAP:[{min:26,val:500},{min:13,val:100},{min:11,val:30},{min:9,val:10},{min:8,val:3},{min:7,val:2},{min:6,val:1.5},{min:5,val:1}],
+  W:[{min:30,val:1000},{min:26,val:600}],
+  W2:[{min:30,val:1000},{min:26,val:600}],
+  W3:[{min:30,val:1000},{min:26,val:600}],
+  W4:[{min:30,val:1000},{min:26,val:600}],
+  W5:[{min:30,val:1000},{min:26,val:600}],
+  W6:[{min:30,val:1000},{min:26,val:600}],
+  W7:[{min:30,val:1000},{min:26,val:600}],
+  W8:[{min:30,val:1000},{min:26,val:600}],
+  W9:[{min:30,val:1000},{min:26,val:600}],
+  W10:[{min:30,val:1000},{min:26,val:600}]
+  
 };
 function payFor(id,n){ const t=PAY[id]; if(!t) return 0; let best=0; for(const r of t) if(n>=r.min && r.val>best) best=r.val; return best*BET; }
 
@@ -1174,97 +1197,106 @@ function flood(grid,sr,sc,id,seen){
   }
   return cells;
 }
+// ===== Clusters avec Wilds (substitution + wild-only) =====
 function findAllClusters(grid){
   const clusters = [];
-  const seenByBase = {}; // baseId -> Set("r,c")
+  const ROWS_N = ROWS, COLS_N = COLS;
 
-  // Liste des symboles "de base" (exclut Wilds + symboles spéciaux non payants)
-  const baseIds = SYM
-    .map(s => s.id)
-    .filter(id => !isWild(id) && id !== 'FSS' && id !== 'GOC'); // adapte si besoin
+  // Les symboles "payants" autorisés comme base (exclut FSS/GOC s'ils ne sont pas dans PAY)
+  const PAYABLE = new Set(Object.keys(PAY));
 
-  // --- 1) Pour chaque symbole de base, on agrège ce symbole + tous les Wilds adjacents ---
-  for(const baseId of baseIds){
-    const seen = (seenByBase[baseId] ||= new Set());
-    for(let r=0;r<ROWS;r++){
-      for(let c=0;c<COLS;c++){
-        const key = `${r},${c}`;
-        if(seen.has(key)) continue;
+  // Visités par (r,c,baseId) pour éviter de fusionner des bases différentes via des wilds
+  const seenForBase = new Set();
 
-        const id0 = grid[r][c];
-        if(id0 !== baseId && !isWild(id0)) continue; // on démarre sur baseId ou Wild
+  // --- Pass A: pour chaque base "normale", cluster = {base OU wild} contigus ---
+  for (let r=0; r<ROWS_N; r++){
+    for (let c=0; c<COLS_N; c++){
+      const baseId = grid[r][c];
+      if (!PAYABLE.has(baseId)) continue; // saute FSS/GOC/vides/etc.
 
-        // BFS limité à baseId OU Wild
-        const st = [[r,c]];
-        const comp = [];
-        let mult = 1; // produit des multiplicateurs des Wilds du cluster
+      const key0 = `${r},${c},${baseId}`;
+      if (seenForBase.has(key0)) continue;
 
-        while(st.length){
-          const [cr,cc] = st.pop();
-          const ck = `${cr},${cc}`;
-          if(seen.has(ck)) continue;
+      // BFS: accepte (même base) OU (wild)
+      const q = [[r,c]];
+      const cells = [];
+      let multSum = 0;
+      seenForBase.add(key0);
 
-          const cid = grid[cr][cc];
-          if(!(cid === baseId || isWild(cid))) continue;
+      while (q.length){
+        const [cr,cc] = q.pop();
+        const id = grid[cr][cc];
+        cells.push([cr,cc]);
+        if (isWild(id)) multSum += wildSumOf(id);
 
-          seen.add(ck);
-          comp.push([cr,cc]);
-          if(isWild(cid)) mult *= wildMultOf(cid);
-
-          // 4-voisins
-          if(cr+1<ROWS) st.push([cr+1,cc]);
-          if(cr-1>=0)   st.push([cr-1,cc]);
-          if(cc+1<COLS) st.push([cr,cc+1]);
-          if(cc-1>=0)   st.push([cr,cc-1]);
+        const neigh = [[1,0],[-1,0],[0,1],[0,-1]];
+        for (const [dr,dc] of neigh){
+          const nr = cr+dr, nc = cc+dc;
+          if (nr<0 || nr>=ROWS_N || nc<0 || nc>=COLS_N) continue;
+          const nid = grid[nr][nc];
+          // admissible si c'est la même base, ou un wild
+          if (nid === baseId || isWild(nid)){
+            const k = `${nr},${nc},${baseId}`;
+            if (!seenForBase.has(k)){
+              seenForBase.add(k);
+              q.push([nr,nc]);
+            }
+          }
         }
+      }
 
-        if(comp.length >= MIN_CLUSTER){
-          clusters.push({ baseId, cells: comp, mult });
-        }
+      if (cells.length >= MIN_CLUSTER){
+        clusters.push({ id: baseId, cells, multSum });
       }
     }
   }
 
-  // --- 2) Clusters 100% Wild (optionnel) ---
-  // Si on veut aussi payer un amas de Wilds isolés, on peut lui attribuer un symbole "par défaut"
-  // Ici on choisit TOK par défaut ; tu peux mettre un autre id si tu préfères (ex: 'CAP').
+  // --- Pass B: clusters "wild-only" (aucune base) ---
+  // Ils paient aussi, avec une base de calcul "TOK" (change facilement ici si nécessaire).
   const seenWildOnly = new Set();
-  for(let r=0;r<ROWS;r++){
-    for(let c=0;c<COLS;c++){
-      const key = `${r},${c}`;
+  for (let r=0; r<ROWS_N; r++){
+    for (let c=0; c<COLS_N; c++){
       const id0 = grid[r][c];
-      if(!isWild(id0) || seenWildOnly.has(key)) continue;
+      if (!isWild(id0)) continue;
+      const k0 = `${r},${c}`;
+      if (seenWildOnly.has(k0)) continue;
 
-      // BFS Wilds only
-      const st = [[r,c]];
-      const comp = [];
-      let mult = 1;
+      const q = [[r,c]];
+      const cells = [];
+      let multSum = 0;
+      seenWildOnly.add(k0);
 
-      while(st.length){
-        const [cr,cc] = st.pop();
-        const ck = `${cr},${cc}`;
-        if(seenWildOnly.has(ck)) continue;
-        const cid = grid[cr][cc];
-        if(!isWild(cid)) continue;
+      while (q.length){
+        const [cr,cc] = q.pop();
+        const id = grid[cr][cc];
+        if (!isWild(id)) continue;
+        cells.push([cr,cc]);
+        multSum += wildSumOf(id);
 
-        seenWildOnly.add(ck);
-        comp.push([cr,cc]);
-        mult *= wildMultOf(cid);
-
-        if(cr+1<ROWS) st.push([cr+1,cc]);
-        if(cr-1>=0)   st.push([cr-1,cc]);
-        if(cc+1<COLS) st.push([cr,cc+1]);
-        if(cc-1>=0)   st.push([cr,cc-1]);
+        const neigh = [[1,0],[-1,0],[0,1],[0,-1]];
+        for (const [dr,dc] of neigh){
+          const nr = cr+dr, nc = cc+dc;
+          if (nr<0 || nr>=ROWS_N || nc<0 || nc>=COLS_N) continue;
+          const nid = grid[nr][nc];
+          if (!isWild(nid)) continue;
+          const k = `${nr},${nc}`;
+          if (!seenWildOnly.has(k)){
+            seenWildOnly.add(k);
+            q.push([nr,nc]);
+          }
+        }
       }
 
-      if(comp.length >= MIN_CLUSTER){
-        clusters.push({ baseId: 'TOK', cells: comp, mult }); // base par défaut
+      if (cells.length >= MIN_CLUSTER){
+        // Base de calcul pour wild-only: "TOK" (à ajuster si tu veux une autre base)
+        clusters.push({ id: 'TOK', cells, multSum });
       }
     }
   }
 
   return clusters;
 }
+
 
 
 function applyGravity(grid){
@@ -1374,7 +1406,9 @@ function showRemovalWithTag(grid,clusters,placeTags=true){
   let globalStartDelay = Infinity;
 
   clusters.forEach(cl=>{
-    const amount = payFor(cl.baseId || cl.id, cl.cells.length) * (cl.mult || 1);
+    const mult = Math.max(1, cl.multSum || 0);
+const amount = payFor(cl.id, cl.cells.length) * mult;
+
 
 
     let minDelay = Infinity;
@@ -1387,34 +1421,56 @@ function showRemovalWithTag(grid,clusters,placeTags=true){
     setTimeout(()=>showClusterWin(amount, cl.cells), Math.max(0, minDelay));
 
     cl.cells.forEach(([r,c])=>{
-      const idx=r*COLS+c;
-      const cell=cells[idx];
-      const sprite=cell.querySelector('.sprite');
-      const delay=c*COL_DELAY + r*ROW_DELAY;
-      if(delay>maxDelay) maxDelay=delay;
+  const idx = r*COLS + c;
+  const cell = cells[idx];
+  const sprite = cell.querySelector('.sprite');
+  const delay = c*COL_DELAY + r*ROW_DELAY;
 
-      if(sprite){
-        sprite.style.animationDelay=`${delay}ms`;
-        sprite.classList.add('pop-win');
-        setTimeout(()=>{
-          if(sprite && sprite.parentNode) sprite.parentNode.removeChild(sprite);
-          if(placeTags && !cell.querySelector('.tag-bg')){
-            const tag=document.createElement('div');
-            tag.className='tag-bg tag-pop';
-            tag.appendChild(makeImg(TAG_IMG));
-            cell.appendChild(tag);
-          }
-        }, POP_MS+delay);
-      }else if(placeTags){
-        if(!cell.querySelector('.tag-bg')){
+  // ⬇️ NEW: si la case est taguée ET contient un WILD, on ne la retire pas
+  const idHere = grid[r][c];
+  const keepWild = tagMask[r][c] && isWild(idHere);
+
+  if (delay > maxDelay) maxDelay = delay;
+
+  if (sprite){
+    if (keepWild){
+      // On peut juste faire un petit feedback visuel si tu veux (optionnel)
+      // sprite.classList.add('hit-pulse');
+      // Pas de pop-win, pas de remove
+    } else {
+      sprite.style.animationDelay = `${delay}ms`;
+      sprite.classList.add('pop-win');
+      setTimeout(()=>{
+        if (sprite && sprite.parentNode) sprite.parentNode.removeChild(sprite);
+        if (placeTags && !cell.querySelector('.tag-bg')){
           const tag=document.createElement('div');
           tag.className='tag-bg tag-pop';
           tag.appendChild(makeImg(TAG_IMG));
           cell.appendChild(tag);
         }
-      }
-      if(placeTags){ tagMask[r][c]=true; justTagged.add(`${r},${c}`); }
-    });
+      }, POP_MS+delay);
+    }
+  } else if (placeTags){
+    if (!keepWild && !cell.querySelector('.tag-bg')){
+      const tag=document.createElement('div');
+      tag.className='tag-bg tag-pop';
+      tag.appendChild(makeImg(TAG_IMG));
+      cell.appendChild(tag);
+    }
+  }
+
+  if (placeTags){ tagMask[r][c]=true; justTagged.add(`${r},${c}`); }
+});
+// AVANT
+// clusters.forEach(cl=>cl.cells.forEach(([r,c])=>grid[r][c]=null));
+
+// APRES : on ne met à null que si ce n’est pas un WILD tagué
+clusters.forEach(cl => cl.cells.forEach(([r,c]) => {
+  const idHere = grid[r][c];
+  const keepWild = tagMask[r][c] && isWild(idHere);
+  if (!keepWild) grid[r][c] = null;
+}));
+
   });
 
   if(globalStartDelay !== Infinity){
@@ -1474,13 +1530,19 @@ async function runGoldenIfPossible(currentGrid){
 
   const replaced=[];
   if(anyTags()){
-    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
-      if(tagMask[r][c]){
-        if(currentGrid[r][c] === 'FSS') continue;
-        swapSpriteAt(cells, r, c, targetId);
-        replaced.push([r,c]);
-      }
-    }
+    for (let r=0; r<ROWS; r++) for (let c=0; c<COLS; c++){
+  if (!tagMask[r][c]) continue;
+
+  const idHere = currentGrid[r][c];
+
+  // ⬇️ NEW: ne remplace pas FSS, et ne remplace pas un WILD si la case est taguée
+  if (idHere === 'FSS') continue;
+  if (isWild(idHere)) continue;
+
+  swapSpriteAt(cells, r, c, targetId);
+  replaced.push([r,c]);
+}
+
   }
 
   swapSpriteAt(cells, gr, gc, targetId);
@@ -1797,10 +1859,10 @@ let bigWinRunning = false;
 function pickBadgeByMultiplier(mult){
   if(mult <= 10) return null;
   if(mult <= 15) return "";
-  if(mult <= 25) return "big win.png";
-  if(mult <= 50) return "mega win.png";
-  if(mult <= 150) return "giga win.png";
-  return "epic win.png";
+  if(mult <= 25) return "img/big win.png";
+  if(mult <= 50) return "img/mega win.png";
+  if(mult <= 150) return "img/giga win.png";
+  return "img/epic win.png";
 }
 
 function showTotalWinAnimation(total){
@@ -1913,9 +1975,12 @@ async function spin(){
         if(clusters.length===0) break;
 
         chain++;
-        let wave=0; clusters.forEach(cl=>{
-  wave += payFor(cl.baseId || cl.id, cl.cells.length) * (cl.mult || 1);
+        let wave = 0;
+clusters.forEach(cl => {
+  const mult = Math.max(1, cl.multSum || 0);
+  wave += payFor(cl.id, cl.cells.length) * mult;
 });
+
 
         total+=wave;
 
@@ -2092,6 +2157,9 @@ window.addEventListener('load', ()=>{ gateBtn?.focus(); });
 </script>
 </body>
 </html>
+
+
+
 
 
 
