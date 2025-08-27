@@ -1558,7 +1558,7 @@
       Sound.add('cluster_goc',   ['audio/cluster_goc.ogg'],   { volume: VOLUME.SFX, pool: 3 });
       Sound.add('cluster_wild',  ['audio/cluster_wild.ogg'],  { volume: VOLUME.SFX, pool: 3 });
       Sound.add('cluster_wildX', ['audio/cluster_wildX.ogg'], { volume: VOLUME.SFX, pool: 3 });
-      Sound.add('fs_hit',        ['audio/fs.ogg'],            { volume: 0.8, pool: 2 });
+      Sound.add('fs_hit',        ['audio/fs.ogg'],            { volume: 1, pool: 2 });
 
 
       const AMBIENT_CFG = [
@@ -2430,6 +2430,7 @@
       const fsAward = (positions.length===3?10:12);
 
       const promises=[];
+      let fsSoundPlayed = false;
       positions.forEach(([r,c])=>{
         const cell=cells[r*COLS+c];
         if(!cell) return;
@@ -2450,6 +2451,11 @@
               spr.classList.remove('hit-pulse');
               spr.remove();
               grid[r][c]=null;
+
+              if(!fsSoundPLayed){
+                Sound.play('fs_hit');
+                fsSoundPLayed = true;
+              }
 
               const fx = spawnFSSFrontFXAtCell(cell);
               fx.addEventListener('animationend', ()=>{ fx.remove(); res(); }, {once:true});
@@ -2478,7 +2484,6 @@
         FROM_PANEL_MS + computeFallTime({baseMs:0,colDelay:DELAY.newCol,rowDelay:DELAY.newRow})
       ) + 20 );
 
-      Sound.play('fs_hit');
       showFSPopup(fsAward);
 
       fssEffectPlayedThisSpin = true;
@@ -3102,6 +3107,8 @@
     </script>
   </body>
 </html>
+
+
 
 
 
