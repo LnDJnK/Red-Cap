@@ -751,7 +751,8 @@
 
 
 <!-- Musique de fond (muette au départ, dé-mutée au clic) -->
-<audio id="bgm" src="audio/ambiance_loop_test_01.01.wav" muted loop preload="auto" playsinline></audio>
+<audio id="bgmMusic" src="audio/musique.ogg" muted loop preload="auto" playsinline></audio>
+<audio id="bgmAmb" src="audio/ambient_loop.ogg" muted loop preload="auto" playsinline></audio>
 
 
   <!-- Double background -->
@@ -830,60 +831,74 @@
   </div>
 
 <script>
+  const VOLUME = {
+  MUSIC: 0.12,   // volume musique de fond (mets 0.10–0.25 si tu veux très doux)
+  SFX:   0.35,   // effets (spin, cascade)
+  AMB:   0.28    // ambiances aléatoires
+};
 /* ===== Background Music (start on gate click with fade-in) ===== */
-const bgm = document.getElementById('bgm');
-bgm.volume = 0; // on fera un fade-in
+const bgmMusic = document.getElementById('bgmMusic');
+const bgmAmb   = document.getElementById('bgmAmb');
 
-const BASE_BGM_VOL = 0.6;
+bgmMusic.volume = 0;
+bgmAmb.volume = 0;
+
+const BASE_BGM_VOL = VOLUME.MUSIC;
 
 function ensureBgmPlaying(vol = BASE_BGM_VOL, fadeMs = 600){
-  try { bgm.muted = false; } catch(e){}
-  try { bgm.loop  = true; }  catch(e){}
-  // relance si nécessaire
-  if (bgm.paused) { try { bgm.play(); } catch(e){} }
-  // sécurise si la loop s'est “terminée”
-  bgm.addEventListener('ended', () => {
-    try { bgm.currentTime = 0; bgm.play(); } catch(e){}
+  try { bgmMusic.muted = false; } catch(e){}
+  try { bgmMusic.loop  = true; }  catch(e){}
+  if (bgmMusic.paused) { try { bgmMusic.play(); } catch(e){} }
+  bgmMusic.addEventListener('ended', () => {
+    try { bgmMusic.currentTime = 0; bgmMusic.play(); } catch(e){}
   }, { once:true });
-
-  // remonte le volume en douceur
-  fadeVolumeTo(vol, fadeMs);
+  fadeVolume(bgmMusic, vol, fadeMs);
 }
 
 
-function fadeVolumeTo(target, durationMs){
-  const start = bgm.volume;
+function fadeVolume(el, target, durationMs){
+  const start = el.volume;
   const delta = target - start;
   const t0 = performance.now();
   function step(t){
     const p = Math.min(1, (t - t0) / durationMs);
-    bgm.volume = start + delta * p;
+    el.volume = Math.max(0, Math.min(1, start + delta * p));
     if (p < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
 }
 
+function ensurePlay(el){
+  try { el.muted = false; el.loop = true; } catch(e){}
+  if (el.paused){
+    try { el.play(); } catch(e){}
+  }
+}
+
 
 // Débloque audio sur la 1ère interaction si le navigateur refuse l'audible sans geste
 function resumeAndUnmute(){
-  bgm.play().finally(() => {
-    bgm.muted = false;
-    // Lance le fade-in uniquement si on est (encore) à 0
-    if (bgm.volume === 0) fadeVolumeTo(0.6, 500);
-    // On n'a besoin de le faire qu'une fois
+  Promise.allSettled([
+    bgmMusic.play().then(()=>{ bgmMusic.pause(); }),
+    bgmAmb.play().then(()=>{ bgmAmb.pause(); })
+  ]).finally(()=>{
+    bgmMusic.muted = false;
+    bgmAmb.muted   = false;
     document.removeEventListener('pointerdown', resumeAndUnmute);
     document.removeEventListener('keydown', resumeAndUnmute);
     document.removeEventListener('touchstart', resumeAndUnmute);
   });
 }
-document.addEventListener('pointerdown', resumeAndUnmute, { once:true });
-document.addEventListener('keydown', resumeAndUnmute, { once:true });
-document.addEventListener('touchstart', resumeAndUnmute, { once:true });
+
 
 // Si retour d'onglet -> s'assurer que la musique reprend
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && (bgm.paused || bgm.volume === 0)){
-    ensureBgmPlaying();
+  if (!document.hidden){
+    // Reprend l’ambiance quoi qu’il arrive
+    ensurePlay(bgmAmb);
+
+    // La musique principale seulement hors FS
+    if (!fsState.active){ ensurePlay(bgmMusic); }
   }
 });
 
@@ -948,15 +963,15 @@ const Sound = (() => {
   return { add, play };
 })();
 
-// Déclare les sons (.wav)
-Sound.add('spin',    ['audio/spin.wav'],    { volume: 1,   pool: 1 });
-Sound.add('cascade', ['audio/cascade.wav'], { volume: 1.0, pool: 3 });
+// Déclare les sons (.ogg)
+Sound.add('spin',    ['audio/spin.ogg'],    { volume: VOLUME.SFX, pool: 1 });
+Sound.add('cascade', ['audio/cascade.ogg'], { volume: VOLUME.SFX, pool: 3 });
 
 /* ===== Ambiances aléatoires (hors Free Spins) — PATCH ===== */
 const AMBIENT_CFG = [
-  { src: 'audio/ambiance_klaxon_test_01.01.wav', volume: 0.9 },
-  { src: 'audio/ambiance_police_test_01.01.wav', volume: 0.9 },
-  { src: 'audio/ambiance_voiture_test_01.01.wav', volume: 0.9 }
+  { src: 'audio/background_sfx_gunfights_1.ogg', volume: VOLUME.AMB },
+  { src: 'audio/background_sfx_gunfights_3.ogg', volume: VOLUME.AMB },
+  { src: 'audio/background_sfx_gunfights_5.ogg', volume: VOLUME.AMB }
 ];
 
 const ambientPlayers = AMBIENT_CFG.map(cfg => {
@@ -1052,10 +1067,12 @@ function stopAmbient() {
 
 // Visibilité onglet
 document.addEventListener('visibilitychange', () => {
-  if (document.hidden) {
-    stopAmbient();
-  } else if (!fsState.active) {
-    scheduleAmbient();
+  if (!document.hidden){
+    // Reprend l’ambiance quoi qu’il arrive
+    ensurePlay(bgmAmb);
+
+    // La musique principale seulement hors FS
+    if (!fsState.active){ ensurePlay(bgmMusic); }
   }
 });
 
@@ -1892,9 +1909,9 @@ function startFS(count){
 
   // 🔇 Musique + ambiances OFF (pause franche = reprise sûre)
   stopAmbient();
-  try { bgm.pause(); } catch(e){}
-  bgm.muted = false;       // on laisse démuté pour ne pas retomber dans l’autoplay policy
-  bgm.volume = 0;          // prépare un fade propre à la sortie
+  try { bgmMusic.pause(); } catch(e){}
+  bgmMusic.muted = false;       // on laisse démuté pour ne pas retomber dans l’autoplay policy
+  bgmMusic.volume = 0;          // prépare un fade propre à la sortie
 }
 
 
@@ -1905,12 +1922,12 @@ function endFS(){
 
   // 🔊 Relance sûre de la loop + fade-in
   try {
-    bgm.muted = false;
-    bgm.volume = 0;                  // démarre à 0…
-    const pr = bgm.play();           // …puis play explicite
-    if (pr && pr.catch) pr.catch(()=>{});
-  } catch(e){}
-  fadeVolumeTo(0.6, 800);            // remonte en douceur
+  bgmMusic.muted = false;
+  bgmMusic.volume = 0;
+  const pr = bgmMusic.play();
+  if (pr && pr.catch) pr.catch(()=>{});
+} catch(e){}
+fadeVolume(bgmMusic, BASE_BGM_VOL, 800);    // remonte en douceur
 
   scheduleAmbient();                  // relance des ambiances
 }
@@ -1938,7 +1955,9 @@ function showFsEndPopup(total, spinsPlayed){
       content.addEventListener('animationend', ()=>{
         overlay.style.display = 'none';
         content.classList.remove('tv-off');
-        ensureBgmPlaying(); // sécurité si le navigateur avait mis l’élément en pause
+        try { ensurePlay(bgmMusic); } catch(e){}
+        fadeVolume(bgmMusic, VOLUME.MUSIC, 600);
+
 
         resolve();
       }, {once:true});
@@ -2301,20 +2320,34 @@ document.getElementById('spinBtn').addEventListener('click', spin);
 const gate = document.getElementById('startupGate');
 const gateBtn = document.getElementById('gateStartBtn');
 
-function closeGateAndStartAudio(){
-  bgm.muted = false;
-  bgm.play().catch(()=>{});
-  fadeVolumeTo(0.6, 600);
+async function startLoop(el, targetVol, fadeMs=600){
+  try{
+    el.muted = false;
+    el.loop  = true;
+    el.volume = 0;
+    await el.play();            // geste utilisateur -> devrait fonctionner
+    fadeVolume(el, targetVol, fadeMs);
+  }catch(e){
+    console.warn('play blocked', e?.name || e);
+  }
+}
 
-  // ✅ prime les ambiances sur le même geste
-  unlockAmbients();   // <— AJOUT
+async function closeGateAndStartAudio(){
+  // 1) Musique puis 2) Ambiance (séquentiel = +fiable)
+  await startLoop(bgmMusic, VOLUME.MUSIC, 600);
+  await startLoop(bgmAmb,   VOLUME.AMB,   600);
 
+  // SFX d'ambiance aléatoires si tu les gardes
+  unlockAmbients();
+
+  // fermer le gate
   gate.classList.add('gate-hide');
   const card = gate.querySelector('.gate-card');
   const end = ()=>{ gate.remove(); };
   card.addEventListener('animationend', end, { once:true });
   setTimeout(end, 700);
 }
+
 
 
 
@@ -2343,6 +2376,8 @@ window.addEventListener('load', ()=>{ gateBtn?.focus(); });
 </script>
 </body>
 </html>
+
+
 
 
 
