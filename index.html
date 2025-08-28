@@ -1368,7 +1368,6 @@
               html.load();
             });
 
-            // prime autoplay
             try { html.muted = true; await html.play(); html.pause(); html.currentTime = 0; html.muted = false; } catch(e){}
 
             this.html = html;
@@ -1531,7 +1530,7 @@
           const dur = amountSfx.start.duration;
           const early = (isFinite(dur) && dur > 0)
             ? Math.max(0, Math.floor(dur*1000 - 60))
-            : 220; // durée inconnue → petit filet de sécu
+            : 220;
           if (_amountHandoffTimer) clearTimeout(_amountHandoffTimer);
           _amountHandoffTimer = setTimeout(doHandoff, early);
         };
@@ -1709,11 +1708,11 @@
         applyMusicMuteUI();
       }
 
+
       function setFxMuted(on){
         FX_MUTED = on;
         localStorage.setItem('mute_fx', JSON.stringify(!!on));
 
-        // Ambiance de fond + ambients ponctuels
         try{ bgmAmb.muted = on; if (on) bgmAmb.pause(); else ensurePlay(bgmAmb); }catch(e){}
 
         try{
@@ -3382,8 +3381,7 @@
           setFxMuted(!FX_MUTED);
         });
       }
-
-      // état initial (au chargement)
+      
       setMusicMuted(MUSIC_MUTED);
       setFxMuted(FX_MUTED);
 
