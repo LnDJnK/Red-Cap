@@ -1105,11 +1105,10 @@
     </div>
   </div>
 
-  <audio id="bgmMusic" src="audio/musique.ogg" muted loop preload="auto" playsinline>
-  </audio>
+  <audio id="bgmMusic" src="audio/musique.ogg" muted loop preload="auto" playsinline></audio>
+  <audio id="bgmAmb" src="audio/ambient_loop.ogg" muted loop preload="auto" playsinline></audio>
+  <audio id="bgmBonus" src="audio/musique_bonus.ogg" muted loop preload="auto" playsinline></audio>
 
-  <audio id="bgmAmb" src="audio/ambient_loop.ogg" muted loop preload="auto" playsinline>
-  </audio>
 
   <div class="bg-wrapper">
     <div class="bg-playing">
@@ -1564,9 +1563,11 @@
 
       const bgmMusic = document.getElementById('bgmMusic');
       const bgmAmb   = document.getElementById('bgmAmb');
+      const bgmBonus = document.getElementById('bgmBonus');
 
       bgmMusic.volume = 0;
-      bgmAmb.volume = 0;
+      bgmAmb.volume   = 0;
+      bgmBonus.volume = 0;
 
       const BASE_BGM_VOL = VOLUME.MUSIC;
 
@@ -1616,11 +1617,14 @@
       document.addEventListener('visibilitychange', () => {
         if (!document.hidden){
           ensurePlay(bgmAmb);
-
-          if (!fsState.active){ ensurePlay(bgmMusic);
+          if (fsState.active){
+            ensurePlay(bgmBonus);
+          } else {
+            ensurePlay(bgmMusic);
           }
         }
       });
+
 
       const Sound = (() => {
         const pools = {};
@@ -1691,6 +1695,11 @@
       Sound.add('cluster_wild',  ['audio/cluster_wild.ogg'],  { volume: VOLUME.SFX, pool: 3 });
       Sound.add('cluster_wildX', ['audio/cluster_wildX.ogg'], { volume: VOLUME.SFX, pool: 3 });
       Sound.add('fs_hit',        ['audio/fs.ogg'],            { volume: 1, pool: 2 });
+      Sound.add('fs_end',        ['audio/end_fs.ogg'],        { volume: VOLUME.SFX, pool: 1 });
+      Sound.add('fs_retrigger',  ['audio/fs_retrigger.ogg'],  { volume: VOLUME.SFX, pool: 1 });
+      Sound.add('goc_mecha',     ['audio/goc_mecha.ogg'],     { volume: VOLUME.SFX, pool: 1 });
+
+
 
 
       const AMBIENT_CFG = [
@@ -1886,8 +1895,8 @@
         }
 
 
-        const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.01,0.02,
-                       0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01];
+        const WEIGHTS=[0.16,0.15,0.14,0.13,0.125,0.09,0.06,0.06,0.05,0.04,0.01,0.01,
+                       0.009,0.008,0.007,0.006,0.005,0.004,0.003,0.002,0.001,0.001];
 
         const IDX_GOC=SYM.findIndex(s=>s.id==='GOC');
         const IDX_FSS=SYM.findIndex(s=>s.id==='FSS');
@@ -2453,6 +2462,8 @@
 
       gocWrap.classList.add('spin-loop');
 
+      Sound.play('goc_mecha');
+
       if(overlay){
         overlay.classList.add('lock-rot');
         overlay.classList.remove('explode'); void overlay.offsetWidth;
@@ -2677,6 +2688,13 @@
       try { bgmMusic.pause(); } catch(e){}
       bgmMusic.muted = false;
       bgmMusic.volume = 0;
+
+      try {
+        bgmBonus.muted = false;
+      }
+
+      catch(e){}
+      startLoop(bgmBonus, VOLUME.MUSIC, 600);
     }
 
 
@@ -2684,6 +2702,13 @@
     function endFS(){
       fsState.active = false;
       document.body.classList.remove('fs-mode','fs-active');
+
+      fadeVolume(bgmBonus, 0, 600);
+        setTimeout(()=>{
+          try { bgmBonus.pause(); bgmBonus.currentTime = 0; } catch(e){}
+        },
+
+        620);
 
       try {
       bgmMusic.muted = false;
@@ -2709,6 +2734,8 @@
       $played.textContent = `${spinsPlayed} free spins played`;
 
       overlay.style.display = 'flex';
+
+      Sound.play('fs_end');
 
       const close = ()=>{
         content.classList.add('tv-off');
@@ -2746,6 +2773,8 @@
       badge.textContent = `+${extra}`;
 
       overlay.style.display = 'flex';
+
+      Sound.play('fs_retrigger');
 
       const end = ()=>{
         overlay.style.display = 'none';
@@ -3176,6 +3205,7 @@
     </script>
   </body>
 </html>
+
 
 
 
