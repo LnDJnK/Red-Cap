@@ -1050,6 +1050,41 @@
 
     .gate-hide .gate-card{ animation: tvOff .5s ease forwards; }
 
+    .audio-toggles{
+      position: fixed;
+      left: 350px;
+      bottom: 14px;
+      display: flex;
+      gap: 10px;
+      background: rgba(12,20,36,.75);
+      border:1px solid rgba(26,43,69,.55);
+      border-radius: 12px;
+      padding: 8px;
+      z-index: 6;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    .audio-btn{
+      width: 44px; height: 44px;
+      display:grid; place-items:center;
+      border:0; border-radius:10px; cursor:pointer;
+      background: rgba(17,26,42,.9);
+      outline:none;
+      color:#e8f0ff;
+      transition: filter .15s var(--ease), transform .06s var(--ease), background .2s var(--ease);
+    }
+
+    .audio-btn:hover{ filter: brightness(1.06); }
+    .audio-btn:active{ transform: translateY(1px); }
+    .audio-btn svg{ width: 22px; height: 22px; }
+
+    .audio-btn.active{
+      background: linear-gradient(180deg, var(--danger1), var(--danger2));
+      color: #fff;
+    }
+
+
   </style>
 </head>
 <body>
@@ -1135,6 +1170,24 @@
   </div>
 
   <img src="img/character.png" alt="Character" class="character">
+
+  <div class="audio-toggles" role="group" aria-label="Audio controls">
+    <button id="muteFxBtn" class="audio-btn" aria-pressed="false" title="Toggle ambience">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 10v4h3l4 3V7L7 10H4zM16 7a5 5 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <path d="M19 5a8 8 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <button id="muteMusicBtn" class="audio-btn" aria-pressed="false" title="Toggle music">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="7" cy="18" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+        <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+      </svg>
+    </button>
+  </div>
+
 
     <div class="controls">
       <div class="badge">Demo Bet: 1.00 $
@@ -1232,6 +1285,9 @@
       SFX:   0.35,
       AMB:   0.38
       };
+
+      let MUSIC_MUTED = JSON.parse(localStorage.getItem('mute_music') || 'false');
+      let FX_MUTED    = JSON.parse(localStorage.getItem('mute_fx') || 'false');
 
       let audioCtx = null;
       function getCtx(){
@@ -1441,6 +1497,8 @@
       let _amountWasStarted = false;
 
       function startAmountAudio(){
+        if (FX_MUTED) return;
+
         _amountEndedOnce = false;
         _amountWasStarted = true;
         try{ getCtx().resume(); }catch(e){}
@@ -1498,23 +1556,14 @@
         try{ amountSfx.start.onended = null; }catch(e){}
         try{ amountSfx.start.pause(); amountSfx.start.currentTime = 0; }catch(e){}
         try{ amountSfx.loop.fadeOutAndStop(100); }catch(e){}
-        if (_amountWasStarted && _amountEndedOnce){
-          _amountEndedOnce = true;
-          try{
-            amountSfx.end.currentTime = 0;
-            amountSfx.end.play().catch(()=>{});
-          }
 
-          catch(e){}
+        if (_amountWasStarted && !_amountEndedOnce){
+          _amountEndedOnce = true;
+          try{ amountSfx.end.currentTime = 0; amountSfx.end.play().catch(()=>{}); }catch(e){}
         }
 
         _amountWasStarted = false;
-
-        _amountEndedOnce = true;
-          try{ amountSfx.end.currentTime = 0; amountSfx.end.play().catch(()=>{}); }catch(e){}
-        }
-      
-
+      }
 
       [amountSfx.start, amountSfx.end].forEach(a=>{
         a.preload = 'auto';
@@ -1581,6 +1630,92 @@
         fadeVolume(bgmMusic, vol, fadeMs);
       }
 
+      function applyMusicMuteUI(){
+        const btn = document.getElementById('muteMusicBtn');
+        if (!btn) return;
+
+        btn.classList.toggle('active', MUSIC_MUTED);
+        btn.setAttribute('aria-pressed', String(MUSIC_MUTED));
+        btn.title = MUSIC_MUTED ? 'Music: OFF' : 'Music: ON';
+
+        btn.innerHTML = MUSIC_MUTED
+          ? `<svg viewBox="0 0 24 24" aria-hidden="true">
+               <path d="M9 18V5l11-2v8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+               <circle cx="7" cy="18" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+               <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+             </svg>`
+          : `<svg viewBox="0 0 24 24" aria-hidden="true">
+               <path d="M9 18V5l11-2v13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+               <circle cx="7" cy="18" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+               <circle cx="18" cy="16" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+             </svg>`;
+      }
+
+      function applyFxMuteUI(){
+        const btn = document.getElementById('muteFxBtn');
+        if (!btn) return;
+
+        btn.classList.toggle('active', FX_MUTED);
+        btn.setAttribute('aria-pressed', String(FX_MUTED));
+        btn.title = FX_MUTED ? 'Ambience: OFF' : 'Ambience: ON';
+
+        btn.innerHTML = FX_MUTED
+          ? `<svg viewBox="0 0 24 24" aria-hidden="true">
+               <path d="M4 10v4h3l4 3V7L7 10H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+               <path d="M3 3l18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+             </svg>`
+          : `<svg viewBox="0 0 24 24" aria-hidden="true">
+               <path d="M4 10v4h3l4 3V7L7 10H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+               <path d="M16 7a5 5 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+               <path d="M19 5a8 8 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+             </svg>`;
+      }
+
+
+      function setMusicMuted(on){
+        MUSIC_MUTED = on;
+        localStorage.setItem('mute_music', JSON.stringify(!!on));
+
+        try{
+          bgmMusic.muted   = on;
+          bgmMusic.volume  = on ? 0 : Math.max(bgmMusic.volume, VOLUME.MUSIC);
+        }catch(e){}
+        try{
+          bgmBonus.muted  = on;
+          bgmBonus.volume = on ? 0 : Math.max(bgmBonus.volume, VOLUME.MUSIC);
+        }catch(e){}
+
+        applyMusicMuteUI();
+      }
+
+      function setFxMuted(on){
+        FX_MUTED = on;
+        localStorage.setItem('mute_fx', JSON.stringify(!!on));
+
+        // Ambiance de fond + ambients ponctuels
+        try{ bgmAmb.muted = on; if (on) bgmAmb.pause(); else ensurePlay(bgmAmb); }catch(e){}
+
+        try{
+          if (Array.isArray(ambientPlayers)){
+            ambientPlayers.forEach(a=>{
+              try{ a.muted = on; if (on){ a.pause(); a.currentTime = 0; } }catch(e){}
+            });
+          }
+        }catch(e){}
+
+        try{
+          if (amountSfx?.loop){
+            amountSfx.loop.setVolume(on ? 0 : VOLUME.SFX, 120);
+            if (on){ amountSfx.loop.fadeOutAndStop(100); }
+          }
+          if (amountSfx?.start) amountSfx.start.muted = on;
+          if (amountSfx?.end)   amountSfx.end.muted   = on;
+        }catch(e){}
+
+        applyFxMuteUI();
+      }
+
+
 
       function fadeVolume(el, target, durationMs){
         const start = el.volume;
@@ -1595,8 +1730,8 @@
       }
 
       function ensurePlay(el){
-        try { el.muted = false; el.loop = true; } catch(e){}
-        if (el.paused){
+        try { el.loop = true; } catch(e){}
+        if (el.paused && !el.muted){
           try { el.play(); } catch(e){}
         }
       }
@@ -1655,6 +1790,7 @@
         }
 
         function play(name){
+          if (FX_MUTED) return;
           const p = pools[name];
           if(!p) return;
           const el = p.arr[p.idx];
@@ -1771,7 +1907,7 @@
       }
 
       function playRandomAmbient() {
-        if (fsState?.active || ambientPlaying || document.hidden) return;
+        if (fsState?.active || ambientPlaying || document.hidden || FX_MUTED) return;
 
         const idx = randomIndexNoRepeat(ambientPlayers.length);
 
@@ -1818,6 +1954,8 @@
         });
 
         function primeAmbientsOnGateClick(){
+          if (FX_MUTED) return scheduleAmbient();
+
           Promise.allSettled(ambientPlayers.map(async a => {
             try {
               a.muted = true;
@@ -3155,6 +3293,13 @@
     const gateBtn = document.getElementById('gateStartBtn');
 
     async function startLoop(el, targetVol, fadeMs=600){
+      if (MUSIC_MUTED && (el === bgmMusic || el === bgmBonus)){
+        try { el.pause(); el.currentTime = 0; } catch(e){}
+          el.muted = true;
+          el.volume = 0;
+          return;
+      }
+
       try{
         el.muted = false;
         el.loop  = true;
@@ -3202,10 +3347,26 @@
 
     window.addEventListener('load', ()=>{ gateBtn?.focus(); });
 
+    const muteMusicBtn = document.getElementById('muteMusicBtn');
+      const muteFxBtn    = document.getElementById('muteFxBtn');
+
+      if (muteMusicBtn){
+        muteMusicBtn.addEventListener('click', ()=>{
+          setMusicMuted(!MUSIC_MUTED);
+        });
+      }
+
+      if (muteFxBtn){
+        muteFxBtn.addEventListener('click', ()=>{
+          setFxMuted(!FX_MUTED);
+        });
+      }
+
+      // état initial (au chargement)
+      setMusicMuted(MUSIC_MUTED);
+      setFxMuted(FX_MUTED);
+
     </script>
   </body>
 </html>
-
-
-
 
