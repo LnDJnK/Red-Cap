@@ -1677,13 +1677,34 @@
         localStorage.setItem('mute_music', JSON.stringify(!!on));
 
         try{
-          bgmMusic.muted   = on;
-          bgmMusic.volume  = on ? 0 : Math.max(bgmMusic.volume, VOLUME.MUSIC);
+          bgmMusic.muted = on;
+          bgmBonus.muted = on;
         }catch(e){}
-        try{
-          bgmBonus.muted  = on;
-          bgmBonus.volume = on ? 0 : Math.max(bgmBonus.volume, VOLUME.MUSIC);
-        }catch(e){}
+
+        if (on){
+          try{
+            fadeVolume(bgmMusic, 0, 300);
+            fadeVolume(bgmBonus, 0, 300);
+            setTimeout(()=>{
+              try{ bgmMusic.pause(); bgmMusic.currentTime = 0; }catch(e){}
+              try{ bgmBonus.pause(); bgmBonus.currentTime = 0; }catch(e){}
+            }, 320);
+          }catch(e){}
+        } else {
+          try { getCtx().resume(); } catch(e){}
+          if (fsState.active){
+            try{
+              bgmBonus.muted = false;
+              ensurePlay(bgmBonus);
+              fadeVolume(bgmBonus, VOLUME.MUSIC, 600);
+            }catch(e){}
+          } else {
+            try{
+              bgmMusic.muted = false;
+              ensureBgmPlaying(VOLUME.MUSIC, 600);
+            }catch(e){}
+          }
+        }
 
         applyMusicMuteUI();
       }
@@ -3369,4 +3390,5 @@
     </script>
   </body>
 </html>
+
 
